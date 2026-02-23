@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Stage, Layer, Rect, Line, Group } from 'react-konva';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Play, RotateCcw, Zap, Shield, AlertTriangle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Palette, Shuffle } from 'lucide-react';
+import { Trophy, Play, RotateCcw, Zap, Shield, AlertTriangle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Palette, Shuffle, Pause } from 'lucide-react';
 import { Direction, Point, Obstacle, ObstacleType, GameState, GRID_SIZE, WORLD_SCALE, INITIAL_SPEED, MIN_SPEED, SPEED_INCREMENT, Particle, FOCAL_LENGTH, CAMERA_HEIGHT, INITIAL_LIVES, INVULNERABILITY_TIME } from './types';
 import { THEMES, Theme } from './themes';
 import { renderThemeObstacle, renderSkyObjects } from './themeRenderers';
@@ -39,6 +39,12 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<Theme>(THEMES[0]);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+
+  // Opponent State
+  const [opponentPos, setOpponentPos] = useState<Point>({ x: 20, y: 20 });
+  const [opponentTrail, setOpponentTrail] = useState<Point[]>([]);
+  const [opponentDirection, setOpponentDirection] = useState<Direction>('LEFT');
+  const [opponentAlive, setOpponentAlive] = useState(true);
 
   const COLORS = currentTheme.colors;
 
@@ -209,8 +215,20 @@ export default function App() {
     setInvulnerableUntil(0);
     setThrottle(0);
     setSpeed(INITIAL_SPEED);
-    setObstacles(generateObstacles(dimensions.width, dimensions.height));
+    const newObstacles = generateObstacles(dimensions.width, dimensions.height);
+    setObstacles(newObstacles);
     setParticles([]);
+
+    // Reset Opponent
+    const cols = Math.floor((dimensions.width / GRID_SIZE) * WORLD_SCALE);
+    const rows = Math.floor((dimensions.height / GRID_SIZE) * WORLD_SCALE);
+    const startX = cols - 10;
+    const startY = rows - 10;
+    setOpponentPos({ x: startX, y: startY });
+    setOpponentTrail([{ x: startX, y: startY }]);
+    setOpponentDirection('LEFT');
+    setOpponentAlive(true);
+
     setGameState('PLAYING');
     lastMoveTimeRef.current = performance.now();
     soundService.startEngine();
@@ -223,6 +241,19 @@ export default function App() {
     if (score > highScore) setHighScore(score);
     if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     soundService.stopEngine();
+  };
+
+  const togglePause = () => {
+    if (gameState === 'PLAYING') {
+      setGameState('PAUSED');
+      soundService.stopEngine();
+      soundService.pauseAmbientMusic();
+    } else if (gameState === 'PAUSED') {
+      setGameState('PLAYING');
+      lastMoveTimeRef.current = performance.now();
+      soundService.startEngine();
+      soundService.resumeAmbientMusic();
+    }
   };
 
   const handleHit = useCallback((color: string = COLORS.WALL) => {
@@ -241,6 +272,75 @@ export default function App() {
       gameOver();
     }
   }, [lives, invulnerableUntil, playerPos, gameOver]);
+
+  const moveOpponent = useCallback(() => {
+    if (!opponentAlive) return;
+
+    setOpponentPos(prev => {
+      const head = prev;
+      const possibleMoves: Direction[] = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+      
+      const validMoves = possibleMoves.filter(dir => {
+        let nextX = head.x;
+        let nextY = head.y;
+        if (dir === 'UP') nextY--;
+        if (dir === 'DOWN') nextY++;
+        if (dir === 'LEFT') nextX--;
+        if (dir === 'RIGHT') nextX++;
+
+        const cols = Math.floor((dimensions.width / GRID_SIZE) * WORLD_SCALE);
+        const rows = Math.floor((dimensions.height / GRID_SIZE) * WORLD_SCALE);
+
+        if (nextX < 0 || nextX >= cols || nextY < 0 || nextY >= rows) return false;
+
+        if (obstacles.some(obs => 
+          nextX >= obs.x && nextX < obs.x + obs.width &&
+          nextY >= obs.y && nextY < obs.y + obs.height &&
+          obs.type !== 'BOOST' && obs.type !== 'SLOW'
+        )) return false;
+
+        if (playerTrail.some(p => p.x === nextX && p.y === nextY)) return false;
+        if (playerPos.x === nextX && playerPos.y === nextY) return false;
+
+        if (opponentTrail.some(p => p.x === nextX && p.y === nextY)) return false;
+
+        if (dir === 'UP' && opponentDirection === 'DOWN') return false;
+        if (dir === 'DOWN' && opponentDirection === 'UP') return false;
+        if (dir === 'LEFT' && opponentDirection === 'RIGHT') return false;
+        if (dir === 'RIGHT' && opponentDirection === 'LEFT') return false;
+
+        return true;
+      });
+
+      if (validMoves.length === 0) {
+        setOpponentAlive(false);
+        createParticles(head.x, head.y, COLORS.OPPONENT, 30);
+        soundService.playCollision();
+        setScore(s => s + 500);
+        return prev;
+      }
+
+      let nextDir = opponentDirection;
+      if (validMoves.includes(opponentDirection) && Math.random() > 0.1) {
+        nextDir = opponentDirection;
+      } else {
+        nextDir = validMoves[Math.floor(Math.random() * validMoves.length)];
+      }
+
+      setOpponentDirection(nextDir);
+
+      let nextX = head.x;
+      let nextY = head.y;
+      if (nextDir === 'UP') nextY--;
+      if (nextDir === 'DOWN') nextY++;
+      if (nextDir === 'LEFT') nextX--;
+      if (nextDir === 'RIGHT') nextX++;
+
+      const newPoint = { x: nextX, y: nextY };
+      setOpponentTrail(t => [...t, newPoint]);
+      return newPoint;
+    });
+  }, [opponentAlive, opponentDirection, obstacles, playerTrail, playerPos, opponentTrail, dimensions, COLORS.OPPONENT]);
 
   const movePlayer = useCallback(() => {
     setDirection(nextDirection);
@@ -268,6 +368,12 @@ export default function App() {
       // Trail collision
       if (playerTrail.some(p => p.x === newX && p.y === newY)) {
         handleHit();
+        return prev;
+      }
+
+      // Opponent Trail collision
+      if (opponentTrail.some(p => p.x === newX && p.y === newY)) {
+        handleHit(COLORS.OPPONENT);
         return prev;
       }
 
@@ -361,6 +467,7 @@ export default function App() {
 
         if (delta >= speed) {
           movePlayer();
+          moveOpponent();
           lastMoveTimeRef.current = time;
         }
       }
@@ -372,7 +479,7 @@ export default function App() {
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, speed, movePlayer, playerPos, playerTrail, direction, smoothAngle]);
+  }, [gameState, speed, movePlayer, moveOpponent, playerPos, playerTrail, direction, smoothAngle]);
 
   useEffect(() => {
     // Map throttle (0-100) to speed (INITIAL_SPEED to MIN_SPEED)
@@ -589,6 +696,63 @@ export default function App() {
       }
     }
 
+    // Opponent Trail
+    opponentTrail.forEach((p, i) => {
+      if (i === 0) return;
+      const prev = opponentTrail[i - 1];
+      const p1 = project(prev.x, prev.y, 0);
+      const p2 = project(p.x, p.y, 0);
+      
+      if (p1 && p2) {
+        elements.push(
+          <Line
+            key={`opp-trail-${i}`}
+            points={[p1.x, p1.y, p2.x, p2.y]}
+            stroke={COLORS.OPPONENT}
+            strokeWidth={2 * p1.scale}
+            opacity={0.8}
+            shadowColor={COLORS.OPPONENT}
+            shadowBlur={5}
+          />
+        );
+        
+        const h = 0.5;
+        const p1Top = project(prev.x, prev.y, h);
+        const p2Top = project(p.x, p.y, h);
+        
+        if (p1Top && p2Top) {
+           elements.push(
+            <Line
+              key={`opp-trail-wall-${i}`}
+              points={[p1.x, p1.y, p2.x, p2.y, p2Top.x, p2Top.y, p1Top.x, p1Top.y]}
+              fill={COLORS.OPPONENT}
+              opacity={0.3}
+              closed
+            />
+          );
+        }
+      }
+    });
+
+    // Opponent
+    if (opponentAlive) {
+      const p = project(opponentPos.x, opponentPos.y, 0);
+      if (p) {
+        elements.push(
+          <Rect
+            key="opponent"
+            x={p.x - 10 * p.scale}
+            y={p.y - 10 * p.scale}
+            width={20 * p.scale}
+            height={20 * p.scale}
+            fill={COLORS.OPPONENT}
+            shadowColor={COLORS.OPPONENT}
+            shadowBlur={10}
+          />
+        );
+      }
+    }
+
     return elements;
   };
 
@@ -744,6 +908,13 @@ export default function App() {
           >
             <Shuffle className="w-5 h-5 text-white/70" />
           </button>
+          <button 
+            onClick={togglePause}
+            className="flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 w-10 h-10 rounded-xl hover:bg-white/10 transition-colors"
+            title={gameState === 'PAUSED' ? "Resume" : "Pause"}
+          >
+            {gameState === 'PAUSED' ? <Play className="w-5 h-5 text-white/70" /> : <Pause className="w-5 h-5 text-white/70" />}
+          </button>
         </div>
         <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl">
           <Shield className={cn("w-5 h-5", performance.now() < invulnerableUntil ? "text-white animate-pulse" : "")} style={{ color: performance.now() < invulnerableUntil ? '#fff' : COLORS.PLAYER }} />
@@ -836,6 +1007,28 @@ export default function App() {
                     opacity={0.4}
                   />
                 )}
+                {/* Opponent Trail */}
+                {opponentTrail.length > 1 && (
+                  <Line
+                    points={opponentTrail.flatMap(p => [p.x + 0.5, p.y + 0.5])}
+                    stroke={COLORS.OPPONENT}
+                    strokeWidth={0.8}
+                    opacity={0.4}
+                  />
+                )}
+                {/* Opponent */}
+                {opponentAlive && (
+                  <Rect
+                    x={opponentPos.x}
+                    y={opponentPos.y}
+                    width={1.2}
+                    height={1.2}
+                    fill={COLORS.OPPONENT}
+                    shadowColor={COLORS.OPPONENT}
+                    offsetX={0.6}
+                    offsetY={0.6}
+                  />
+                )}
                 {/* Player */}
                 <Rect
                   x={playerPos.x}
@@ -898,6 +1091,30 @@ export default function App() {
                 ))}
               </div>
             </motion.div>
+          </motion.div>
+        )}
+
+        {gameState === 'PAUSED' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
+          >
+            <div className="text-center">
+              <h2 className="text-5xl font-black italic tracking-tighter mb-8" style={{ color: COLORS.PLAYER }}>PAUSED</h2>
+              <button
+                onClick={togglePause}
+                className="group relative px-12 py-4 font-bold rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 text-black"
+                style={{ backgroundColor: COLORS.PLAYER }}
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform" />
+                <span className="relative flex items-center gap-2">
+                  <Play className="w-5 h-5 fill-current" />
+                  RESUME
+                </span>
+              </button>
+            </div>
           </motion.div>
         )}
 

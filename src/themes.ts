@@ -8,6 +8,7 @@ export interface Theme {
   title: string;
   colors: {
     PLAYER: string;
+    OPPONENT: string;
     TRAIL: string;
     WALL: string;
     BOOST: string;
@@ -27,6 +28,7 @@ export const THEMES: Theme[] = [
     title: 'Neon Cyber',
     colors: {
       PLAYER: '#00f2ff',
+      OPPONENT: '#ff0055',
       TRAIL: '#00f2ff',
       WALL: '#ff0055',
       BOOST: '#39ff14',
@@ -44,6 +46,7 @@ export const THEMES: Theme[] = [
     title: 'Alien (1979)',
     colors: {
       PLAYER: '#00FF41',
+      OPPONENT: '#FF0000',
       TRAIL: '#00FF41',
       WALL: '#FF6600',
       BOOST: '#FFFF00',
@@ -61,6 +64,7 @@ export const THEMES: Theme[] = [
     title: 'Blade Runner (1982)',
     colors: {
       PLAYER: '#00FFFF',
+      OPPONENT: '#FF4500',
       TRAIL: '#00FFFF',
       WALL: '#FF4500',
       BOOST: '#FF6EC7',
@@ -78,6 +82,7 @@ export const THEMES: Theme[] = [
     title: 'Tron (1982)',
     colors: {
       PLAYER: '#00BFFF',
+      OPPONENT: '#FF4500',
       TRAIL: '#00BFFF',
       WALL: '#FF6600',
       BOOST: '#FFFFFF',
@@ -95,6 +100,7 @@ export const THEMES: Theme[] = [
     title: 'The Matrix (1999)',
     colors: {
       PLAYER: '#00FF41',
+      OPPONENT: '#FF0000',
       TRAIL: '#00FF41',
       WALL: '#003B00',
       BOOST: '#00CC33',
@@ -112,6 +118,7 @@ export const THEMES: Theme[] = [
     title: 'Iron Man (2008)',
     colors: {
       PLAYER: '#00E5FF',
+      OPPONENT: '#FF0000',
       TRAIL: '#00E5FF',
       WALL: '#FF6D00',
       BOOST: '#76FF03',
@@ -129,6 +136,7 @@ export const THEMES: Theme[] = [
     title: 'Interstellar (2014)',
     colors: {
       PLAYER: '#ECF0F1',
+      OPPONENT: '#E74C3C',
       TRAIL: '#ECF0F1',
       WALL: '#2C3E50',
       BOOST: '#F39C12',
@@ -146,6 +154,7 @@ export const THEMES: Theme[] = [
     title: '2001: A Space Odyssey',
     colors: {
       PLAYER: '#FF0000',
+      OPPONENT: '#FFFF00',
       TRAIL: '#FF0000',
       WALL: '#FFFFFF',
       BOOST: '#FFFF00',
@@ -163,6 +172,7 @@ export const THEMES: Theme[] = [
     title: 'Star Trek: TNG',
     colors: {
       PLAYER: '#FFCC00',
+      OPPONENT: '#FF0000',
       TRAIL: '#FFCC00',
       WALL: '#FF7700',
       BOOST: '#9999FF',
@@ -180,6 +190,7 @@ export const THEMES: Theme[] = [
     title: 'Blade Runner 2049',
     colors: {
       PLAYER: '#00BFFF',
+      OPPONENT: '#FF7F50',
       TRAIL: '#00BFFF',
       WALL: '#D4A017',
       BOOST: '#FF7F50',
@@ -197,6 +208,7 @@ export const THEMES: Theme[] = [
     title: 'Tron: Legacy',
     colors: {
       PLAYER: '#00CFFF',
+      OPPONENT: '#FF3D00',
       TRAIL: '#00CFFF',
       WALL: '#FF7300',
       BOOST: '#FFFFFF',
@@ -214,6 +226,7 @@ export const THEMES: Theme[] = [
     title: 'Minority Report',
     colors: {
       PLAYER: '#4FC3F7',
+      OPPONENT: '#FF4081',
       TRAIL: '#4FC3F7',
       WALL: '#FF4081',
       BOOST: '#FFFFFF',
@@ -231,6 +244,7 @@ export const THEMES: Theme[] = [
     title: 'Ex Machina',
     colors: {
       PLAYER: '#FFFFFF',
+      OPPONENT: '#FF0000',
       TRAIL: '#FFFFFF',
       WALL: '#FF0000',
       BOOST: '#00FF7F',
@@ -248,6 +262,7 @@ export const THEMES: Theme[] = [
     title: 'Avatar',
     colors: {
       PLAYER: '#1E90FF',
+      OPPONENT: '#FF0000',
       TRAIL: '#1E90FF',
       WALL: '#FF69B4',
       BOOST: '#00FA9A',
@@ -265,6 +280,7 @@ export const THEMES: Theme[] = [
     title: 'Star Wars: Empire Strikes Back',
     colors: {
       PLAYER: '#00BFFF',
+      OPPONENT: '#FF0000',
       TRAIL: '#00BFFF',
       WALL: '#FF4500',
       BOOST: '#32CD32',
@@ -282,6 +298,7 @@ export const THEMES: Theme[] = [
     title: 'Oblivion',
     colors: {
       PLAYER: '#00E5FF',
+      OPPONENT: '#FF0000',
       TRAIL: '#00E5FF',
       WALL: '#FF6F00',
       BOOST: '#FFFFFF',
@@ -299,6 +316,7 @@ export const THEMES: Theme[] = [
     title: 'Ghost in the Shell',
     colors: {
       PLAYER: '#00FFFF',
+      OPPONENT: '#FF0000',
       TRAIL: '#00FFFF',
       WALL: '#FF00FF',
       BOOST: '#FFFFFF',
@@ -316,6 +334,7 @@ export const THEMES: Theme[] = [
     title: 'Dune',
     colors: {
       PLAYER: '#00BFFF',
+      OPPONENT: '#FF0000',
       TRAIL: '#00BFFF',
       WALL: '#FF6600',
       BOOST: '#C2A060',
@@ -333,6 +352,7 @@ export const THEMES: Theme[] = [
     title: 'Moon',
     colors: {
       PLAYER: '#B0C4DE',
+      OPPONENT: '#FF4500',
       TRAIL: '#B0C4DE',
       WALL: '#FF4500',
       BOOST: '#FFD700',
@@ -350,6 +370,7 @@ export const THEMES: Theme[] = [
     title: 'The Martian',
     colors: {
       PLAYER: '#FFFFFF',
+      OPPONENT: '#FF0000',
       TRAIL: '#FFFFFF',
       WALL: '#FF4500',
       BOOST: '#FFD700',
@@ -367,6 +388,7 @@ export const THEMES: Theme[] = [
     title: 'Star Trek: TOS',
     colors: {
       PLAYER: '#0000FF',    // Blue (Science/Medical)
+      OPPONENT: '#FF0000',  // Red (Klingon)
       TRAIL: '#FFFFFF',     // White
       WALL: '#8B4513',      // SaddleBrown (Rocks)
       BOOST: '#32CD32',     // LimeGreen

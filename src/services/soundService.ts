@@ -34,6 +34,20 @@ class SoundService {
     }
   }
 
+  pauseAmbientMusic() {
+    if (this.musicAudio) {
+      this.musicAudio.pause();
+    }
+  }
+
+  resumeAmbientMusic() {
+    if (this.musicAudio) {
+      this.musicAudio.play().catch(e => console.log("Audio resume failed:", e));
+    } else {
+      this.playAmbientMusic();
+    }
+  }
+
   private resume() {
     if (this.ctx?.state === 'suspended') {
       this.ctx.resume();

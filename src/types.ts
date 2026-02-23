@@ -28,7 +28,7 @@ export interface Obstacle {
   moveAxis?: 'x' | 'y';
 }
 
-export type GameState = 'START' | 'PLAYING' | 'GAMEOVER';
+export type GameState = 'START' | 'PLAYING' | 'GAMEOVER' | 'PAUSED';
 
 export interface Particle {
   id: string;
@@ -51,6 +51,7 @@ export const INVULNERABILITY_TIME = 2000; // ms
 
 export const COLORS = {
   PLAYER: '#00f2ff', // Cyan
+  OPPONENT: '#ff0000', // Red
   TRAIL: '#00f2ff',
   WALL: '#ff0055',     // Neon Pink
   BOOST: '#39ff14',    // Neon Green
