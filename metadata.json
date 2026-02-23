@@ -1,0 +1,5 @@
+{
+  "name": "Light Racer",
+  "description": "A vector graphics light cycle obstacle course simulator in a neon sci-fi environment.",
+  "requestFramePermissions": []
+}
