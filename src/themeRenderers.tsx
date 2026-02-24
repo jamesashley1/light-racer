@@ -55,6 +55,20 @@ export const renderThemeObstacle = (
   }
 };
 
+const STAR_WARS_WING_POINTS = [
+  [0, -1], [0.5, -0.5], [0.5, 0.5], [0, 1], [-0.5, 0.5], [-0.5, -0.5]
+];
+
+const STAR_WARS_LEG_OFFSETS = [
+  [0, 0], [1, 0], [0, 1], [1, 1] // Will be scaled by width
+];
+
+const STAR_WARS_BODY_EDGES = [
+  [0,1], [1,2], [2,3], [3,0], // Bottom
+  [4,5], [5,6], [6,7], [7,4], // Top
+  [0,4], [1,5], [2,6], [3,7]  // Sides
+];
+
 const renderStarWarsObstacle = (
   obs: Obstacle,
   COLORS: any,
@@ -87,15 +101,12 @@ const renderStarWarsObstacle = (
 
     // Wings (Hexagons)
     const wingOffset = 0.8;
-    const wingPoints = [
-      [0, -1], [0.5, -0.5], [0.5, 0.5], [0, 1], [-0.5, 0.5], [-0.5, -0.5]
-    ];
 
     [-1, 1].forEach((side, idx) => {
       const wx = x + side * wingOffset;
       const wy = y;
       
-      const projectedPoints = wingPoints.map(p => {
+      const projectedPoints = STAR_WARS_WING_POINTS.map(p => {
         // Rotate wings to face player slightly or just be flat
         return project(wx, wy + p[0] * size, z + p[1] * size);
       });
@@ -136,6 +147,7 @@ const renderStarWarsObstacle = (
     const zBody = -legHeight;
 
     // 4 Legs
+    // Use explicit offsets based on width
     const legOffsets = [
       [0, 0], [width, 0], [0, width], [width, width]
     ];
@@ -174,13 +186,7 @@ const renderStarWarsObstacle = (
     const projBody = bodyPoints.map(p => project(p[0], p[1], p[2]));
     
     // Draw edges connecting body points
-    const edges = [
-      [0,1], [1,2], [2,3], [3,0], // Bottom
-      [4,5], [5,6], [6,7], [7,4], // Top
-      [0,4], [1,5], [2,6], [3,7]  // Sides
-    ];
-
-    edges.forEach((edge, i) => {
+    STAR_WARS_BODY_EDGES.forEach((edge, i) => {
       const p1 = projBody[edge[0]];
       const p2 = projBody[edge[1]];
       if (p1 && p2) {
@@ -190,8 +196,6 @@ const renderStarWarsObstacle = (
             points={[p1.x, p1.y, p2.x, p2.y]}
             stroke={color}
             strokeWidth={2}
-            fill={COLORS.GRID}
-            closed
           />
         );
       }
@@ -590,6 +594,26 @@ const renderGenericObstacle = (
     return;
   }
 
+  if (type === 'WEAPON') {
+    // Floating Box
+    const floatHeight = 1.5;
+    const size = width * 0.5;
+    const offset = (width - size) / 2;
+    renderBox(
+      x + offset, 
+      y + offset, 
+      size, 
+      size, 
+      -size, 
+      color, 
+      project, 
+      elements, 
+      `weapon-${obs.id}`, 
+      -floatHeight
+    );
+    return;
+  }
+
   const zHeight = type === 'PILLAR' ? 3 : 1;
   renderBox(x, y, width, height, -zHeight, color, project, elements, `gen-${obs.id}`);
 };
@@ -633,6 +657,27 @@ export const renderSkyObjects = (
         />
       </Group>
     );
+
+    // Moving TIE Fighters
+    const tieCount = 3;
+    for (let i = 0; i < tieCount; i++) {
+      const speed = 0.05 + i * 0.02;
+      const t = time * speed + i * 1000;
+      const x = (t % (dimensions.width + 200)) - 100;
+      const y = dimensions.height * (0.1 + i * 0.15) + Math.sin(t * 0.005) * 20;
+      
+      elements.push(
+        <Group key={`sky-tie-${i}`} x={x} y={y}>
+          {/* Body */}
+          <Circle key="body" radius={6} fill="#111" stroke="#444" strokeWidth={1} />
+          {/* Wings */}
+          <Line key="wing-l" points={[-10, -15, -10, 15]} stroke="#444" strokeWidth={3} />
+          <Line key="wing-r" points={[10, -15, 10, 15]} stroke="#444" strokeWidth={3} />
+          {/* Connectors */}
+          <Line key="conn" points={[-10, 0, 10, 0]} stroke="#444" strokeWidth={2} />
+        </Group>
+      );
+    }
   } else if (theme.id === 'ghost-shell') {
     // Cityscape
     const skylineCount = 20;
@@ -645,7 +690,7 @@ export const renderSkyObjects = (
       
       elements.push(
         <Rect
-          key={`skyline-${i}`}
+          key={`sky-skyline-${i}`}
           x={x}
           y={y}
           width={width + 1}
@@ -662,7 +707,7 @@ export const renderSkyObjects = (
         if (Math.random() > 0.5) {
           elements.push(
             <Rect
-              key={`win-${i}-${j}`}
+              key={`sky-win-${i}-${j}`}
               x={x + Math.random() * width * 0.8}
               y={y + Math.random() * h * 0.8}
               width={width * 0.1}
@@ -758,7 +803,7 @@ export const renderSkyObjects = (
     const radius = Math.min(dimensions.width, dimensions.height) * 0.15;
 
     elements.push(
-      <Group key="hal-9000">
+      <Group key="sky-hal-9000">
         {/* Outer Rim (Silver/Metal) */}
         <Circle
           x={cx}

@@ -10,7 +10,7 @@ export interface Point {
   y: number;
 }
 
-export type ObstacleType = 'WALL' | 'BOOST' | 'SLOW' | 'TELEPORT' | 'MOVING_WALL' | 'PILLAR' | 'DECORATION' | 'GIANT_TREE';
+export type ObstacleType = 'WALL' | 'BOOST' | 'SLOW' | 'TELEPORT' | 'MOVING_WALL' | 'PILLAR' | 'DECORATION' | 'GIANT_TREE' | 'WEAPON';
 
 export interface Obstacle {
   id: string;
@@ -26,6 +26,19 @@ export interface Obstacle {
   moveRange?: number;
   moveSpeed?: number;
   moveAxis?: 'x' | 'y';
+}
+
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
+export interface Opponent {
+  id: string;
+  x: number;
+  y: number;
+  trail: Point[];
+  direction: Direction;
+  alive: boolean;
+  difficulty: Difficulty;
+  color: string;
 }
 
 export type GameState = 'START' | 'PLAYING' | 'GAMEOVER' | 'PAUSED';
@@ -48,6 +61,7 @@ export const SPEED_INCREMENT = 0.995; // Much slower progression
 
 export const INITIAL_LIVES = 3;
 export const INVULNERABILITY_TIME = 2000; // ms
+export const WEAPON_DURATION = 5000; // ms
 
 export const COLORS = {
   PLAYER: '#00f2ff', // Cyan
@@ -59,6 +73,7 @@ export const COLORS = {
   TELEPORT: '#bc13fe', // Neon Purple
   MOVING_WALL: '#ff8800', // Neon Orange
   PILLAR: '#ffffff',      // White
+  WEAPON: '#ff00ff',      // Magenta
   GRID: '#05050a',
   GRID_LINES: '#00f2ff',
   TEXT: '#e94560',

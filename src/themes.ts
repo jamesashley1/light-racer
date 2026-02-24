@@ -16,6 +16,7 @@ export interface Theme {
     TELEPORT: string;
     MOVING_WALL: string;
     PILLAR: string;
+    WEAPON: string;
     GRID: string;
     GRID_LINES: string;
     TEXT: string;
@@ -36,6 +37,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#bc13fe',
       MOVING_WALL: '#ff8800',
       PILLAR: '#ffffff',
+      WEAPON: '#ff00ff',
       GRID: '#05050a',
       GRID_LINES: '#00f2ff',
       TEXT: '#e94560',
@@ -54,6 +56,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFF5E0',
       MOVING_WALL: '#FFF5E0',
       PILLAR: '#FF9900',
+      WEAPON: '#FF3D00',
       GRID: '#000000',      // Void Black
       GRID_LINES: '#333333',
       TEXT: '#FFF5E0',
@@ -72,6 +75,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFFFFF',
       MOVING_WALL: '#003B00',
       PILLAR: '#00FF41',
+      WEAPON: '#FFFFFF',
       GRID: '#000000',      // Void Black
       GRID_LINES: '#003B00',
       TEXT: '#00FF41',
@@ -90,6 +94,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#00F0FF',
       MOVING_WALL: '#FF6600',
       PILLAR: '#FFFFFF',
+      WEAPON: '#FF0000',
       GRID: '#000000',      // Void Black
       GRID_LINES: '#00F0FF',
       TEXT: '#FFFFFF',
@@ -108,6 +113,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFD580',
       MOVING_WALL: '#FFD580',
       PILLAR: '#FFA500',
+      WEAPON: '#FF0000',
       GRID: '#1A0A00',      // Noir Dark
       GRID_LINES: '#FFA500',
       TEXT: '#FFD580',
@@ -126,6 +132,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFFFFF',
       MOVING_WALL: '#FFFFFF',
       PILLAR: '#4FC3F7',
+      WEAPON: '#FF4081',
       GRID: '#0A1628',      // Deep Navy
       GRID_LINES: '#4FC3F7',
       TEXT: '#FFFFFF',
@@ -144,6 +151,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFD700',
       MOVING_WALL: '#B22222',
       PILLAR: '#FFE87C',
+      WEAPON: '#B22222',
       GRID: '#0A0A1A',      // Suit Interior
       GRID_LINES: '#FFD700',
       TEXT: '#FFE87C',
@@ -162,6 +170,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#39FF14',
       MOVING_WALL: '#FFA500',
       PILLAR: '#80FF57',
+      WEAPON: '#FF0000',
       GRID: '#000000',      // Terminal Black
       GRID_LINES: '#39FF14',
       TEXT: '#80FF57',
@@ -180,6 +189,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#0044FF',
       MOVING_WALL: '#FFFF00',
       PILLAR: '#00FF00',
+      WEAPON: '#FF0000',
       GRID: '#000000',
       GRID_LINES: '#FF6600',
       TEXT: '#00FF00',
@@ -198,6 +208,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFFFFF',
       MOVING_WALL: '#323232',
       PILLAR: '#FFFFFF',
+      WEAPON: '#FF0000',
       GRID: '#E8EAF0',      // Panel Gray
       GRID_LINES: '#FFFFFF',
       TEXT: '#323232',
@@ -216,6 +227,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFFFFF',
       MOVING_WALL: '#888888',
       PILLAR: '#FFFFFF',
+      WEAPON: '#E74C3C',
       GRID: '#050505',      // Space Black
       GRID_LINES: '#FFA040',
       TEXT: '#FFFFFF',
@@ -234,6 +246,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#E8C880',
       MOVING_WALL: '#4A5060',
       PILLAR: '#E8C880',
+      WEAPON: '#C8A050',
       GRID: '#080808',      // Pod Interior
       GRID_LINES: '#C8A050',
       TEXT: '#E8C880',
@@ -252,6 +265,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFD700',
       MOVING_WALL: '#FF6B2B',
       PILLAR: '#FFD700',
+      WEAPON: '#FF6B2B',
       GRID: '#080400',      // Ash Dark
       GRID_LINES: '#00E5FF',
       TEXT: '#FFD700',
@@ -270,6 +284,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#00FFFF',
       MOVING_WALL: '#FF00FF',
       PILLAR: '#FFFFFF',
+      WEAPON: '#FF0000',
       GRID: '#0A0A2A',
       GRID_LINES: '#00FFFF',
       TEXT: '#00FFFF',
@@ -288,6 +303,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#C19A6B',
       MOVING_WALL: '#8B2500',
       PILLAR: '#C19A6B',
+      WEAPON: '#8B2500',
       GRID: '#1A0800',      // Arrakeen Dark
       GRID_LINES: '#E8C87A',
       TEXT: '#C19A6B',
@@ -306,6 +322,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFFFFF',
       MOVING_WALL: '#4D9FFF',
       PILLAR: '#FFFFFF',
+      WEAPON: '#FFFFFF',
       GRID: '#000510',      // Deep Space
       GRID_LINES: '#0066FF',
       TEXT: '#FFFFFF',
@@ -324,6 +341,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#00BFFF',
       MOVING_WALL: '#8A2BE2',
       PILLAR: '#39FF14',
+      WEAPON: '#FF0000',
       GRID: '#000A14',      // Jungle Dark
       GRID_LINES: '#00BFFF',
       TEXT: '#39FF14',
@@ -342,6 +360,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#FFFFFF',
       MOVING_WALL: '#FF6600',
       PILLAR: '#FFFFFF',
+      WEAPON: '#FF6600',
       GRID: '#180800',      // Hab Interior
       GRID_LINES: '#39FF14',
       TEXT: '#FFFFFF',
@@ -360,6 +379,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#F0F0F0',
       MOVING_WALL: '#DC143C',
       PILLAR: '#F0F0F0',
+      WEAPON: '#DC143C',
       GRID: '#050A14',      // Detroit Dark
       GRID_LINES: '#1E90FF',
       TEXT: '#F0F0F0',
@@ -378,6 +398,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#33FF00',
       MOVING_WALL: '#FF3200',
       PILLAR: '#AAFFAA',
+      WEAPON: '#FF3200',
       GRID: '#000000',      // CRT Black
       GRID_LINES: '#33FF00',
       TEXT: '#33FF00',
@@ -396,6 +417,7 @@ export const THEMES: Theme[] = [
       TELEPORT: '#4169E1',
       MOVING_WALL: '#CC0000',
       PILLAR: '#CC9966',
+      WEAPON: '#CC0000',
       GRID: '#000000',
       GRID_LINES: '#FF9900',
       TEXT: '#CC9966',

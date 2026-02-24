@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Stage, Layer, Rect, Line, Group } from 'react-konva';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, Play, RotateCcw, Zap, Shield, AlertTriangle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Palette, Shuffle, Pause } from 'lucide-react';
-import { Direction, Point, Obstacle, ObstacleType, GameState, GRID_SIZE, WORLD_SCALE, INITIAL_SPEED, MIN_SPEED, SPEED_INCREMENT, Particle, FOCAL_LENGTH, CAMERA_HEIGHT, INITIAL_LIVES, INVULNERABILITY_TIME } from './types';
+import { Direction, Point, Obstacle, ObstacleType, GameState, GRID_SIZE, WORLD_SCALE, INITIAL_SPEED, MIN_SPEED, SPEED_INCREMENT, Particle, FOCAL_LENGTH, CAMERA_HEIGHT, INITIAL_LIVES, INVULNERABILITY_TIME, WEAPON_DURATION, Opponent, Difficulty } from './types';
 import { THEMES, Theme } from './themes';
 import { renderThemeObstacle, renderSkyObjects } from './themeRenderers';
 import { soundService } from './services/soundService';
@@ -36,17 +36,47 @@ export default function App() {
   const [gridPulse, setGridPulse] = useState(0);
   const [lives, setLives] = useState(INITIAL_LIVES);
   const [invulnerableUntil, setInvulnerableUntil] = useState(0);
+  const [weaponTimer, setWeaponTimer] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<Theme>(THEMES[0]);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
   // Opponent State
-  const [opponentPos, setOpponentPos] = useState<Point>({ x: 20, y: 20 });
-  const [opponentTrail, setOpponentTrail] = useState<Point[]>([]);
-  const [opponentDirection, setOpponentDirection] = useState<Direction>('LEFT');
-  const [opponentAlive, setOpponentAlive] = useState(true);
+  const [opponent, setOpponent] = useState<Opponent | null>(null);
+  const [respawnTimer, setRespawnTimer] = useState(0);
+  const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [flavorText, setFlavorText] = useState<string | null>(null);
 
   const COLORS = currentTheme.colors;
+
+  // Flavor Text Logic
+  useEffect(() => {
+    setFlavorText(null);
+    const interval = setInterval(() => {
+      if (Math.random() > 0.3) return; // 30% chance every 10s
+
+      if (currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049') {
+        const questions = [
+          "Describe in single words, only the good things that come into your mind about your mother.",
+          "You’re in a desert walking along in the sand when all of the sudden you look down...",
+          "You see a tortoise lying on its back, its belly baking in the hot sun, beating its legs trying to turn itself over, but it can't, not without your help. But you're not helping. Why is that?",
+          "It's your birthday. Someone gives you a calfskin wallet. How do you react?",
+          "You’ve got a little boy. He shows you his butterfly collection plus the killing jar. What do you do?",
+          "You’re watching television. Suddenly you realize there’s a wasp crawling on your arm.",
+          "You’re reading a magazine. You come across a full-page nude photo of a girl."
+        ];
+        setFlavorText(questions[Math.floor(Math.random() * questions.length)]);
+        setTimeout(() => setFlavorText(null), 8000);
+      } else if (currentTheme.id === 'tron') {
+        if (Math.random() > 0.5) {
+          setFlavorText("I fight for the Users!");
+          setTimeout(() => setFlavorText(null), 4000);
+        }
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [currentTheme]);
 
   // Smooth camera state
   const [smoothPos, setSmoothPos] = useState<Point>({ x: 10, y: 10 });
@@ -115,7 +145,9 @@ export default function App() {
           x: Math.floor(Math.random() * (cols - 4)) + 2,
           y: Math.floor(Math.random() * (rows - 4)) + 2
         };
-      } else if (rand < 0.30) {
+      } else if (rand < 0.25) {
+        type = 'WEAPON';
+      } else if (rand < 0.35) {
         type = 'MOVING_WALL';
         moveAxis = Math.random() > 0.5 ? 'x' : 'y';
         moveRange = Math.floor(Math.random() * 3) + 2;
@@ -213,6 +245,7 @@ export default function App() {
     setScore(0);
     setLives(INITIAL_LIVES);
     setInvulnerableUntil(0);
+    setWeaponTimer(0);
     setThrottle(0);
     setSpeed(INITIAL_SPEED);
     const newObstacles = generateObstacles(dimensions.width, dimensions.height);
@@ -220,14 +253,7 @@ export default function App() {
     setParticles([]);
 
     // Reset Opponent
-    const cols = Math.floor((dimensions.width / GRID_SIZE) * WORLD_SCALE);
-    const rows = Math.floor((dimensions.height / GRID_SIZE) * WORLD_SCALE);
-    const startX = cols - 10;
-    const startY = rows - 10;
-    setOpponentPos({ x: startX, y: startY });
-    setOpponentTrail([{ x: startX, y: startY }]);
-    setOpponentDirection('LEFT');
-    setOpponentAlive(true);
+    spawnOpponent();
 
     setGameState('PLAYING');
     lastMoveTimeRef.current = performance.now();
@@ -273,11 +299,57 @@ export default function App() {
     }
   }, [lives, invulnerableUntil, playerPos, gameOver]);
 
-  const moveOpponent = useCallback(() => {
-    if (!opponentAlive) return;
+  const spawnOpponent = useCallback(() => {
+    const cols = Math.floor((dimensions.width / GRID_SIZE) * WORLD_SCALE);
+    const rows = Math.floor((dimensions.height / GRID_SIZE) * WORLD_SCALE);
+    
+    // Attempt to spawn near player but not too close
+    let spawnX, spawnY;
+    let attempts = 0;
+    const minDist = 15;
+    const maxDist = 40;
 
-    setOpponentPos(prev => {
-      const head = prev;
+    do {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = minDist + Math.random() * (maxDist - minDist);
+      spawnX = Math.floor(playerPos.x + Math.cos(angle) * dist);
+      spawnY = Math.floor(playerPos.y + Math.sin(angle) * dist);
+      attempts++;
+    } while (
+      (spawnX < 2 || spawnX >= cols - 2 || spawnY < 2 || spawnY >= rows - 2 ||
+      obstacles.some(o => Math.abs(o.x - spawnX) < 2 && Math.abs(o.y - spawnY) < 2)) &&
+      attempts < 50
+    );
+
+    if (attempts >= 50) {
+      // Fallback to far corner
+      spawnX = cols - 10;
+      spawnY = rows - 10;
+    }
+
+    const difficulty: Difficulty = Math.random() > 0.6 ? 'HARD' : (Math.random() > 0.3 ? 'MEDIUM' : 'EASY');
+
+    setOpponent({
+      id: 'opp-1',
+      x: spawnX,
+      y: spawnY,
+      trail: [{ x: spawnX, y: spawnY }],
+      direction: 'LEFT', // Initial direction, will correct immediately
+      alive: true,
+      difficulty,
+      color: COLORS.OPPONENT
+    });
+    setRespawnTimer(0);
+    setAnnouncement(`NEW CHALLENGER: ${difficulty} BOT`);
+    setTimeout(() => setAnnouncement(null), 3000);
+  }, [dimensions, playerPos, obstacles, COLORS.OPPONENT]);
+
+  const moveOpponent = useCallback(() => {
+    if (!opponent || !opponent.alive) return;
+
+    setOpponent(prev => {
+      if (!prev) return null;
+      const head = { x: prev.x, y: prev.y };
       const possibleMoves: Direction[] = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
       
       const validMoves = possibleMoves.filter(dir => {
@@ -302,32 +374,73 @@ export default function App() {
         if (playerTrail.some(p => p.x === nextX && p.y === nextY)) return false;
         if (playerPos.x === nextX && playerPos.y === nextY) return false;
 
-        if (opponentTrail.some(p => p.x === nextX && p.y === nextY)) return false;
+        if (prev.trail.some(p => p.x === nextX && p.y === nextY)) return false;
 
-        if (dir === 'UP' && opponentDirection === 'DOWN') return false;
-        if (dir === 'DOWN' && opponentDirection === 'UP') return false;
-        if (dir === 'LEFT' && opponentDirection === 'RIGHT') return false;
-        if (dir === 'RIGHT' && opponentDirection === 'LEFT') return false;
+        if (dir === 'UP' && prev.direction === 'DOWN') return false;
+        if (dir === 'DOWN' && prev.direction === 'UP') return false;
+        if (dir === 'LEFT' && prev.direction === 'RIGHT') return false;
+        if (dir === 'RIGHT' && prev.direction === 'LEFT') return false;
 
         return true;
       });
 
       if (validMoves.length === 0) {
-        setOpponentAlive(false);
-        createParticles(head.x, head.y, COLORS.OPPONENT, 30);
+        createParticles(head.x, head.y, prev.color, 30);
         soundService.playCollision();
-        setScore(s => s + 500);
-        return prev;
+        setScore(s => s + 500 * (prev.difficulty === 'HARD' ? 3 : (prev.difficulty === 'MEDIUM' ? 2 : 1)));
+        setRespawnTimer(performance.now() + 30000); // 30s respawn
+        return { ...prev, alive: false };
       }
 
-      let nextDir = opponentDirection;
-      if (validMoves.includes(opponentDirection) && Math.random() > 0.1) {
-        nextDir = opponentDirection;
+      let nextDir = prev.direction;
+      
+      // AI Logic
+      if (prev.difficulty === 'EASY') {
+        // Random movement, mostly straight
+        if (validMoves.includes(prev.direction) && Math.random() > 0.2) {
+          nextDir = prev.direction;
+        } else {
+          nextDir = validMoves[Math.floor(Math.random() * validMoves.length)];
+        }
       } else {
-        nextDir = validMoves[Math.floor(Math.random() * validMoves.length)];
+        // Medium/Hard: Bias towards player
+        const bestMove = validMoves.reduce((best, dir) => {
+          let nx = head.x;
+          let ny = head.y;
+          if (dir === 'UP') ny--;
+          if (dir === 'DOWN') ny++;
+          if (dir === 'LEFT') nx--;
+          if (dir === 'RIGHT') nx++;
+          
+          const dist = Math.abs(nx - playerPos.x) + Math.abs(ny - playerPos.y);
+          
+          // Hard: Aggressive, Medium: Mixed
+          const score = dist + (prev.difficulty === 'HARD' ? Math.random() * 5 : Math.random() * 20);
+          
+          return score < best.score ? { dir, score } : best;
+        }, { dir: validMoves[0], score: Infinity });
+        
+        // Maintain direction if reasonable to avoid jitter
+        if (validMoves.includes(prev.direction) && Math.random() > (prev.difficulty === 'HARD' ? 0.1 : 0.4)) {
+           // Check if current direction is terrible
+           let nx = head.x;
+           let ny = head.y;
+           if (prev.direction === 'UP') ny--;
+           if (prev.direction === 'DOWN') ny++;
+           if (prev.direction === 'LEFT') nx--;
+           if (prev.direction === 'RIGHT') nx++;
+           const currentDist = Math.abs(nx - playerPos.x) + Math.abs(ny - playerPos.y);
+           
+           // If moving away from player, maybe switch
+           if (currentDist > Math.abs(head.x - playerPos.x) + Math.abs(head.y - playerPos.y) && Math.random() > 0.5) {
+             nextDir = bestMove.dir;
+           } else {
+             nextDir = prev.direction;
+           }
+        } else {
+          nextDir = bestMove.dir;
+        }
       }
-
-      setOpponentDirection(nextDir);
 
       let nextX = head.x;
       let nextY = head.y;
@@ -337,10 +450,15 @@ export default function App() {
       if (nextDir === 'RIGHT') nextX++;
 
       const newPoint = { x: nextX, y: nextY };
-      setOpponentTrail(t => [...t, newPoint]);
-      return newPoint;
+      return {
+        ...prev,
+        x: nextX,
+        y: nextY,
+        direction: nextDir,
+        trail: [...prev.trail, newPoint]
+      };
     });
-  }, [opponentAlive, opponentDirection, obstacles, playerTrail, playerPos, opponentTrail, dimensions, COLORS.OPPONENT]);
+  }, [opponent, obstacles, playerTrail, playerPos, dimensions]);
 
   const movePlayer = useCallback(() => {
     setDirection(nextDirection);
@@ -372,7 +490,7 @@ export default function App() {
       }
 
       // Opponent Trail collision
-      if (opponentTrail.some(p => p.x === newX && p.y === newY)) {
+      if (opponent && opponent.alive && opponent.trail.some(p => p.x === newX && p.y === newY)) {
         handleHit(COLORS.OPPONENT);
         return prev;
       }
@@ -386,8 +504,16 @@ export default function App() {
 
       if (hitObstacle) {
         if (hitObstacle.type === 'WALL' || hitObstacle.type === 'MOVING_WALL' || hitObstacle.type === 'PILLAR') {
-          handleHit(COLORS[hitObstacle.type]);
-          return prev;
+          if (weaponTimer > performance.now()) {
+            // Destroy obstacle with weapon
+            setObstacles(prev => prev.filter(o => o.id !== hitObstacle.id));
+            createParticles(newX, newY, COLORS.WEAPON, 30);
+            soundService.playCollision(); // Reuse collision sound for now
+            // Don't stop, move into the space
+          } else {
+            handleHit(COLORS[hitObstacle.type]);
+            return prev;
+          }
         } else if (hitObstacle.type === 'BOOST') {
           setSpeed(s => Math.max(MIN_SPEED, s * 0.7));
           createParticles(newX, newY, COLORS.BOOST, 15);
@@ -402,6 +528,11 @@ export default function App() {
           newX = hitObstacle.target.x;
           newY = hitObstacle.target.y;
           createParticles(newX, newY, COLORS.TELEPORT, 20);
+        } else if (hitObstacle.type === 'WEAPON') {
+          setWeaponTimer(performance.now() + WEAPON_DURATION);
+          createParticles(newX, newY, COLORS.WEAPON, 20);
+          soundService.playBoost(); // Reuse boost sound
+          setObstacles(prev => prev.filter(o => o.id !== hitObstacle.id));
         }
       }
 
@@ -448,6 +579,11 @@ export default function App() {
         }
         return obs;
       }));
+
+      // Respawn Logic
+      if (respawnTimer > 0 && performance.now() > respawnTimer) {
+        spawnOpponent();
+      }
 
       if (gameState === 'PLAYING') {
         // Smooth interpolation for camera
@@ -554,6 +690,112 @@ export default function App() {
     };
   };
 
+  // Render Opponent Cycle
+  const renderOpponentCycle = (opp: Opponent) => {
+    const { x, y, direction, color } = opp;
+    const elements: React.ReactNode[] = [];
+    
+    // Determine rotation/orientation
+    let dx = 0, dy = 0; // Forward vector
+    let px = 0, py = 0; // Perpendicular vector (Right)
+    
+    switch (direction) {
+      case 'RIGHT': dx = 1; dy = 0; px = 0; py = 1; break;
+      case 'LEFT':  dx = -1; dy = 0; px = 0; py = -1; break;
+      case 'DOWN':  dx = 0; dy = 1; px = -1; py = 0; break;
+      case 'UP':    dx = 0; dy = -1; px = 1; py = 0; break;
+    }
+
+    // Helper to get world point
+    const getPoint = (forward: number, right: number, up: number) => ({
+        x: x + dx * forward + px * right,
+        y: y + dy * forward + py * right,
+        z: up
+    });
+
+    const drawPoly = (points: {x: number, y: number, z: number}[], fill: string, stroke: string, key: string, opacity: number = 1) => {
+        const projPoints = points.map(p => project(p.x, p.y, p.z));
+        if (projPoints.every(p => p !== null)) {
+             elements.push(
+                <Line
+                    key={key}
+                    points={projPoints.flatMap(p => [p!.x, p!.y])}
+                    fill={fill}
+                    stroke={stroke}
+                    strokeWidth={Math.max(0.5, 1 * projPoints[0]!.scale)}
+                    closed
+                    opacity={opacity}
+                />
+            );
+        }
+    };
+
+    // Cycle Geometry (Wedge)
+    // Length: 1.4, Width: 0.6, Height: 0.7
+    const w = 0.3; // Half width
+    const l_rear = -0.7;
+    const l_front = 0.7;
+    const h_top = -0.7;
+    const h_nose = -0.3;
+
+    // Vertices
+    const rbl = getPoint(l_rear, -w, 0); // Rear Bottom Left
+    const rbr = getPoint(l_rear, w, 0);  // Rear Bottom Right
+    const fbl = getPoint(l_front, -w, 0); // Front Bottom Left
+    const fbr = getPoint(l_front, w, 0);  // Front Bottom Right
+    
+    const rtl = getPoint(l_rear, -w, h_top); // Rear Top Left
+    const rtr = getPoint(l_rear, w, h_top);  // Rear Top Right
+    
+    const ftl = getPoint(0.2, -w, h_top); // Front Top Left (Roof end)
+    const ftr = getPoint(0.2, w, h_top);  // Front Top Right
+    
+    const ntl = getPoint(l_front, -w, h_nose); // Nose Top Left
+    const ntr = getPoint(l_front, w, h_nose);  // Nose Top Right
+
+    // Bottom (Shadow)
+    drawPoly([rbl, rbr, fbr, fbl], 'rgba(0,0,0,0.5)', 'transparent', 'scene-opp-cycle-shadow');
+
+    // Rear
+    drawPoly([rbl, rbr, rtr, rtl], color, '#fff', 'scene-opp-cycle-rear');
+
+    // Left Side
+    drawPoly([rbl, fbl, ntl, ftl, rtl], color, '#fff', 'scene-opp-cycle-left');
+
+    // Right Side
+    drawPoly([rbr, fbr, ntr, ftr, rtr], color, '#fff', 'scene-opp-cycle-right');
+
+    // Front (Nose)
+    drawPoly([fbl, fbr, ntr, ntl], color, '#fff', 'scene-opp-cycle-front');
+
+    // Windshield (Slope)
+    drawPoly([ftl, ftr, ntr, ntl], '#111', color, 'scene-opp-cycle-windshield');
+
+    // Roof
+    drawPoly([rtl, rtr, ftr, ftl], color, '#fff', 'scene-opp-cycle-roof');
+    
+    // Engine Glow (Rear)
+    const enginePos = getPoint(l_rear, 0, h_top/2);
+    const projEngine = project(enginePos.x, enginePos.y, enginePos.z);
+    if (projEngine) {
+        elements.push(
+            <Rect
+                key="scene-opp-cycle-glow"
+                x={projEngine.x - 5 * projEngine.scale}
+                y={projEngine.y - 5 * projEngine.scale}
+                width={10 * projEngine.scale}
+                height={10 * projEngine.scale}
+                fill={color}
+                shadowColor={color}
+                shadowBlur={10}
+                opacity={0.8}
+            />
+        );
+    }
+
+    return elements;
+  };
+
   // Render 3D Scene
   const renderScene = () => {
     const elements: React.ReactNode[] = [];
@@ -566,7 +808,7 @@ export default function App() {
     if (currentTheme.id === 'tos') {
       elements.push(
         <Rect
-          key="ground-fill"
+          key="scene-ground-fill"
           x={0}
           y={horizonY}
           width={dimensions.width}
@@ -579,7 +821,7 @@ export default function App() {
 
     elements.push(
       <Line
-        key="horizon"
+        key="scene-horizon"
         points={[0, dimensions.height / 2, dimensions.width, dimensions.height / 2]}
         stroke={COLORS.GRID_LINES}
         strokeWidth={2}
@@ -603,7 +845,7 @@ export default function App() {
       if (p1 && p2) {
         elements.push(
           <Line
-            key={`grid-v-${x}`}
+            key={`scene-grid-v-${x}`}
             points={[p1.x, p1.y, p2.x, p2.y]}
             stroke={COLORS.GRID_LINES}
             strokeWidth={1}
@@ -618,7 +860,7 @@ export default function App() {
       if (p1 && p2) {
         elements.push(
           <Line
-            key={`grid-h-${y}`}
+            key={`scene-grid-h-${y}`}
             points={[p1.x, p1.y, p2.x, p2.y]}
             stroke={COLORS.GRID_LINES}
             strokeWidth={1}
@@ -637,19 +879,43 @@ export default function App() {
 
     // Trail
     const isInvulnerable = performance.now() < invulnerableUntil;
+    const isArmed = weaponTimer > performance.now();
+    
     if (playerTrail.length > 1) {
       for (let i = 0; i < playerTrail.length - 1; i++) {
         const p1 = project(playerTrail[i].x + 0.5, playerTrail[i].y + 0.5, 0);
         const p2 = project(playerTrail[i+1].x + 0.5, playerTrail[i+1].y + 0.5, 0);
-        if (p1 && p2) {
+        
+        // Taller trail height
+        const trailHeight = 0.8; 
+        const p1Top = project(playerTrail[i].x + 0.5, playerTrail[i].y + 0.5, -trailHeight);
+        const p2Top = project(playerTrail[i+1].x + 0.5, playerTrail[i+1].y + 0.5, -trailHeight);
+
+        if (p1 && p2 && p1Top && p2Top) {
+          const opacity = isInvulnerable ? (Math.floor(performance.now() / 100) % 2 ? 0.2 : 0.8) : 0.6;
+          const trailColor = isArmed ? COLORS.WEAPON : COLORS.TRAIL;
+          
+          // Wall face
           elements.push(
             <Line
-              key={`trail-${i}`}
-              points={[p1.x, p1.y, p2.x, p2.y]}
-              stroke={COLORS.TRAIL}
-              strokeWidth={4}
-              shadowColor={COLORS.TRAIL}
-              opacity={isInvulnerable ? (Math.floor(performance.now() / 100) % 2 ? 0.2 : 0.8) : 1}
+              key={`scene-trail-wall-${i}`}
+              points={[p1.x, p1.y, p2.x, p2.y, p2Top.x, p2Top.y, p1Top.x, p1Top.y]}
+              fill={trailColor}
+              opacity={opacity}
+              closed
+            />
+          );
+          
+          // Top edge
+          elements.push(
+            <Line
+              key={`scene-trail-top-${i}`}
+              points={[p1Top.x, p1Top.y, p2Top.x, p2Top.y]}
+              stroke={trailColor}
+              strokeWidth={2}
+              opacity={1}
+              shadowColor={trailColor}
+              shadowBlur={isArmed ? 15 : 5}
             />
           );
         }
@@ -691,7 +957,7 @@ export default function App() {
         if (p1 && p2) {
           elements.push(
             <Line
-              key={`streak-${i}`}
+              key={`scene-streak-${i}`}
               points={[p1.x, p1.y, p2.x, p2.y]}
               stroke={COLORS.PLAYER}
               strokeWidth={1}
@@ -703,60 +969,48 @@ export default function App() {
     }
 
     // Opponent Trail
-    opponentTrail.forEach((p, i) => {
-      if (i === 0) return;
-      const prev = opponentTrail[i - 1];
-      const p1 = project(prev.x, prev.y, 0);
-      const p2 = project(p.x, p.y, 0);
-      
-      if (p1 && p2) {
-        elements.push(
-          <Line
-            key={`opp-trail-${i}`}
-            points={[p1.x, p1.y, p2.x, p2.y]}
-            stroke={COLORS.OPPONENT}
-            strokeWidth={2 * p1.scale}
-            opacity={0.8}
-            shadowColor={COLORS.OPPONENT}
-            shadowBlur={5}
-          />
-        );
+    if (opponent && opponent.trail.length > 1) {
+      opponent.trail.forEach((p, i) => {
+        if (i === 0) return;
+        const prev = opponent.trail[i - 1];
+        const p1 = project(prev.x, prev.y, 0);
+        const p2 = project(p.x, p.y, 0);
         
-        const h = 0.5;
-        const p1Top = project(prev.x, prev.y, h);
-        const p2Top = project(p.x, p.y, h);
-        
-        if (p1Top && p2Top) {
-           elements.push(
+        if (p1 && p2) {
+          elements.push(
             <Line
-              key={`opp-trail-wall-${i}`}
-              points={[p1.x, p1.y, p2.x, p2.y, p2Top.x, p2Top.y, p1Top.x, p1Top.y]}
-              fill={COLORS.OPPONENT}
-              opacity={0.3}
-              closed
+              key={`scene-opp-trail-${i}`}
+              points={[p1.x, p1.y, p2.x, p2.y]}
+              stroke={opponent.color}
+              strokeWidth={2 * p1.scale}
+              opacity={0.8}
+              shadowColor={opponent.color}
+              shadowBlur={5}
             />
           );
+          
+          const h = 0.5;
+          const p1Top = project(prev.x, prev.y, h);
+          const p2Top = project(p.x, p.y, h);
+          
+          if (p1Top && p2Top) {
+             elements.push(
+              <Line
+                key={`scene-opp-trail-wall-${i}`}
+                points={[p1.x, p1.y, p2.x, p2.y, p2Top.x, p2Top.y, p1Top.x, p1Top.y]}
+                fill={opponent.color}
+                opacity={0.3}
+                closed
+              />
+            );
+          }
         }
-      }
-    });
+      });
+    }
 
     // Opponent
-    if (opponentAlive) {
-      const p = project(opponentPos.x, opponentPos.y, 0);
-      if (p) {
-        elements.push(
-          <Rect
-            key="opponent"
-            x={p.x - 10 * p.scale}
-            y={p.y - 10 * p.scale}
-            width={20 * p.scale}
-            height={20 * p.scale}
-            fill={COLORS.OPPONENT}
-            shadowColor={COLORS.OPPONENT}
-            shadowBlur={10}
-          />
-        );
-      }
+    if (opponent && opponent.alive) {
+      elements.push(...renderOpponentCycle(opponent));
     }
 
     return elements;
@@ -1014,23 +1268,23 @@ export default function App() {
                   />
                 )}
                 {/* Opponent Trail */}
-                {opponentTrail.length > 1 && (
+                {opponent && opponent.trail.length > 1 && (
                   <Line
-                    points={opponentTrail.flatMap(p => [p.x + 0.5, p.y + 0.5])}
-                    stroke={COLORS.OPPONENT}
+                    points={opponent.trail.flatMap(p => [p.x + 0.5, p.y + 0.5])}
+                    stroke={opponent.color}
                     strokeWidth={0.8}
                     opacity={0.4}
                   />
                 )}
                 {/* Opponent */}
-                {opponentAlive && (
+                {opponent && opponent.alive && (
                   <Rect
-                    x={opponentPos.x}
-                    y={opponentPos.y}
+                    x={opponent.x}
+                    y={opponent.y}
                     width={1.2}
                     height={1.2}
-                    fill={COLORS.OPPONENT}
-                    shadowColor={COLORS.OPPONENT}
+                    fill={opponent.color}
+                    shadowColor={opponent.color}
                     offsetX={0.6}
                     offsetY={0.6}
                   />
@@ -1099,6 +1353,48 @@ export default function App() {
             </motion.div>
           </motion.div>
         )}
+
+        {/* Weapon Timer */}
+        {weaponTimer > performance.now() && (
+          <div className="absolute top-24 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-2xl font-bold animate-pulse z-50" style={{ color: COLORS.WEAPON }}>
+            <Zap className="w-8 h-8" />
+            {Math.ceil((weaponTimer - performance.now()) / 1000)}s
+          </div>
+        )}
+
+        {/* Flavor Text */}
+        <AnimatePresence>
+          {flavorText && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute bottom-32 left-1/2 transform -translate-x-1/2 max-w-2xl text-center z-40 pointer-events-none"
+            >
+              <p className="text-xl md:text-2xl font-mono text-white/80 bg-black/60 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/10 shadow-2xl">
+                {currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049' ? (
+                  <span className="italic">"{flavorText}"</span>
+                ) : (
+                  <span className="font-bold uppercase tracking-widest text-cyan-400">{flavorText}</span>
+                )}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Announcement */}
+        <AnimatePresence>
+          {announcement && (
+            <motion.div
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -50, opacity: 0 }}
+              className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-red-600/80 backdrop-blur-md px-8 py-2 rounded-full border border-white/20 z-50"
+            >
+              <p className="text-white font-black italic tracking-widest text-xl whitespace-nowrap">{announcement}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {gameState === 'PAUSED' && (
           <motion.div
