@@ -205,7 +205,7 @@ export default function App() {
 
   const startGame = () => {
     setPlayerPos({ x: 10, y: 10 });
-    setSmoothPos({ x: 10, y: 10 });
+    setSmoothPos({ x: 11, y: 10 }); // Start 1 unit ahead
     setPlayerTrail([{ x: 10, y: 10 }]);
     setDirection('RIGHT');
     setNextDirection('RIGHT');
@@ -453,9 +453,15 @@ export default function App() {
         // Smooth interpolation for camera
         const progress = Math.min(1, delta / speed);
         const prevPos = playerTrail[playerTrail.length - 2] || playerPos;
+        
+        const baseX = prevPos.x + (playerPos.x - prevPos.x) * progress;
+        const baseY = prevPos.y + (playerPos.y - prevPos.y) * progress;
+        
+        // Place POV ahead of the trail
+        const lookAhead = 1.0;
         setSmoothPos({
-          x: prevPos.x + (playerPos.x - prevPos.x) * progress,
-          y: prevPos.y + (playerPos.y - prevPos.y) * progress,
+          x: baseX + Math.cos(smoothAngle) * lookAhead,
+          y: baseY + Math.sin(smoothAngle) * lookAhead,
         });
 
         // Smooth angle interpolation

@@ -322,8 +322,6 @@ const renderInterstellarObstacle = (
           fill={COLORS.GRID}
           stroke={color}
           strokeWidth={2}
-          shadowColor={color}
-          shadowBlur={10}
         />
       );
       // Add "shine" or grid lines on sphere?
@@ -609,7 +607,7 @@ export const renderSkyObjects = (
     const radius = Math.min(dimensions.width, dimensions.height) * 0.15;
     
     elements.push(
-      <Group key="death-star">
+      <Group key="sky-death-star">
         <Circle
           x={cx}
           y={cy}
