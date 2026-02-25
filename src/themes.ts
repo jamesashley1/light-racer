@@ -211,7 +211,7 @@ export const THEMES: Theme[] = [
       WEAPON: '#FF0000',
       GRID: '#E8EAF0',      // Panel Gray
       GRID_LINES: '#FFFFFF',
-      TEXT: '#323232',
+      TEXT: '#FFFFFF',
     }
   },
   {

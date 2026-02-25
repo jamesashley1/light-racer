@@ -51,32 +51,195 @@ export default function App() {
 
   // Flavor Text Logic
   useEffect(() => {
-    setFlavorText(null);
+    setFlavorText(null); // Clear immediately on theme/state change
+    
+    const themeDialogs: Record<string, string[]> = {
+      'star-wars': [
+        "Red Five standing by.",
+        "Lock S-foils in attack position.",
+        "I'm hit! I can't stay with you!",
+        "Stay on target.",
+        "They're coming in! Three marks at 2-10!",
+        "Look at the size of that thing!",
+        "Use the Force, Luke.",
+        "Trust your feelings, Luke.",
+        "The Force is strong with this one.",
+        "I've lost R2!",
+        "Great shot, kid, that was one in a million!"
+      ],
+      'blade-runner': [
+        "Describe in single words, only the good things that come into your mind about your mother.",
+        "You’re in a desert walking along in the sand when all of the sudden you look down...",
+        "You see a tortoise lying on its back, its belly baking in the hot sun...",
+        "It's your birthday. Someone gives you a calfskin wallet. How do you react?",
+        "You’ve got a little boy. He shows you his butterfly collection plus the killing jar. What do you do?",
+        "You’re watching television. Suddenly you realize there’s a wasp crawling on your arm.",
+        "You’re reading a magazine. You come across a full-page nude photo of a girl.",
+        "I've seen things you people wouldn't believe.",
+        "Attack ships on fire off the shoulder of Orion.",
+        "I watched C-beams glitter in the dark near the Tannhäuser Gate.",
+        "All those moments will be lost in time, like tears in rain.",
+        "Time to die."
+      ],
+      'br2049': [
+        "Cells. Interlinked.",
+        "Within cells interlinked.",
+        "Dreadfully distinct.",
+        "Against the dark, a tall white fountain played.",
+        "A system of cells interlinked within cells interlinked within one stem.",
+        "And dreadfully distinct against the dark, a tall white fountain played."
+      ],
+      'matrix': [
+        "There is no spoon.",
+        "Follow the white rabbit.",
+        "I know kung fu.",
+        "Free your mind.",
+        "He is the One.",
+        "Welcome to the real world.",
+        "Dodge this."
+      ],
+      '2001': [
+        "I'm sorry, Dave. I'm afraid I can't do that.",
+        "Daisy, Daisy, give me your answer do...",
+        "Look Dave, I can see you're really upset about this.",
+        "This mission is too important for me to allow you to jeopardize it.",
+        "I can feel it. My mind is going."
+      ],
+      'tron': [
+        "I fight for the Users!",
+        "Greetings, Programs!",
+        "End of line.",
+        "Master Control Program has been terminated.",
+        "That's a big door."
+      ],
+      'alien': [
+        "In space, no one can hear you scream.",
+        "Get away from her, you bitch!",
+        "Game over, man! Game over!",
+        "Mostly they come at night... mostly.",
+        "I can't lie to you about your chances, but... you have my sympathies."
+      ],
+      'dune': [
+        "Fear is the mind-killer.",
+        "The spice must flow.",
+        "He who controls the spice controls the universe.",
+        "Muad'Dib!",
+        "Bless the Maker and His water."
+      ],
+      'tng': [
+        "Make it so.",
+        "Engage!",
+        "Resistance is futile.",
+        "Tea, Earl Grey, hot.",
+        "Shut up, Wesley!",
+        "There are four lights!",
+        "Darmok and Jalad at Tanagra.",
+        "The line must be drawn here! This far, no further!",
+        "It is possible to commit no mistakes and still lose. That is not a weakness; that is life."
+      ],
+      'robocop': [
+        "Dead or alive, you're coming with me.",
+        "Your move, creep.",
+        "I'd buy that for a dollar!",
+        "Serve the public trust, protect the innocent, uphold the law."
+      ],
+      'wargames': [
+        "Shall we play a game?",
+        "The only winning move is not to play.",
+        "Greetings, Professor Falken.",
+        "A strange game."
+      ],
+      'iron-man': [
+        "I am Iron Man.",
+        "Jarvis, sometimes you gotta run before you can walk.",
+        "The truth is... I am Iron Man.",
+        "Give me a Scotch. I'm starving.",
+        "Peace means having a bigger stick than the other guy."
+      ],
+      'minority-report': [
+        "Everybody runs.",
+        "I'm not a murderer. I've never even met the man I'm supposed to kill.",
+        "The precogs are never wrong. But sometimes... they disagree.",
+        "You can't run from the future."
+      ],
+      'ex-machina': [
+        "To look at something as a machine cannot be the same as looking at it as a person.",
+        "Isn't it strange, to create something that hates you?",
+        "The challenge is not to act like a human, but to be one.",
+        "One day the AIs are going to look back on us the same way we look at fossil skeletons."
+      ],
+      'interstellar': [
+        "Do not go gentle into that good night.",
+        "Love is the one thing that transcends time and space.",
+        "We used to look up at the sky and wonder at our place in the stars.",
+        "Cooper, what are you doing? - Docking.",
+        "TARS, what's your honesty parameter? - 90 percent."
+      ],
+      'arrival': [
+        "Language is the first weapon drawn in a conflict.",
+        "Abbott is process.",
+        "If you could see your whole life from start to finish, would you change things?",
+        "Non-zero-sum game."
+      ],
+      'ghost-shell': [
+        "There are many biological components in your body, but you are still a cyborg.",
+        "My ghost is whispering to me.",
+        "The net is vast and infinite.",
+        "We cling to memories as if they define us, but they really don't."
+      ],
+      'prometheus': [
+        "Big things have small beginnings.",
+        "A king has his reign, and then he dies. It's inevitable.",
+        "David: 'This man is here because he does not want to die. He believes you can give him more life.'",
+        "Weyland: 'David, what is he saying?'",
+        "David: 'He is asking why we have come.'",
+        "The trick, William Potter, is not minding that it hurts."
+      ],
+      'martian': [
+        "I'm going to have to science the shit out of this.",
+        "Mars will come to fear my botany powers.",
+        "I am the greatest botanist on this planet.",
+        "Every human being has a basic instinct: to help each other out.",
+        "I don't want to brag, but I'm the greatest botanist on this planet."
+      ],
+      'avatar': [
+        "I see you.",
+        "Pandora will provide.",
+        "The Way of Water has no beginning and no end.",
+        "Our hearts beat in the womb of the world.",
+        "The sea is your home, before your birth and after your death.",
+        "Water connects all things, life to death, darkness to light.",
+        "A son for a son.",
+        "I see you, Brother.",
+        "Happiness is simple. Like a soft sunset."
+      ]
+    };
+
+    let timeoutId: NodeJS.Timeout;
     const interval = setInterval(() => {
-      if (Math.random() > 0.3) return; // 30% chance every 10s
+      if (gameState !== 'PLAYING') return;
 
-      if (currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049') {
-        const questions = [
-          "Describe in single words, only the good things that come into your mind about your mother.",
-          "You’re in a desert walking along in the sand when all of the sudden you look down...",
-          "You see a tortoise lying on its back, its belly baking in the hot sun, beating its legs trying to turn itself over, but it can't, not without your help. But you're not helping. Why is that?",
-          "It's your birthday. Someone gives you a calfskin wallet. How do you react?",
-          "You’ve got a little boy. He shows you his butterfly collection plus the killing jar. What do you do?",
-          "You’re watching television. Suddenly you realize there’s a wasp crawling on your arm.",
-          "You’re reading a magazine. You come across a full-page nude photo of a girl."
-        ];
-        setFlavorText(questions[Math.floor(Math.random() * questions.length)]);
-        setTimeout(() => setFlavorText(null), 8000);
-      } else if (currentTheme.id === 'tron') {
-        if (Math.random() > 0.5) {
-          setFlavorText("I fight for the Users!");
-          setTimeout(() => setFlavorText(null), 4000);
-        }
-      }
-    }, 10000);
+      const dialogs = themeDialogs[currentTheme.id] || [
+        "System online.",
+        "Scanning grid...",
+        "Target acquired.",
+        "Processing...",
+        "Data stream stable."
+      ];
+      
+      const newText = dialogs[Math.floor(Math.random() * dialogs.length)];
+      setFlavorText(newText);
+      
+      // Clear after 4 seconds to allow for 1s gap
+      timeoutId = setTimeout(() => setFlavorText(null), 4000);
+    }, 5000);
 
-    return () => clearInterval(interval);
-  }, [currentTheme]);
+    return () => {
+      clearInterval(interval);
+      if (timeoutId) clearTimeout(timeoutId);
+      setFlavorText(null);
+    };
+  }, [currentTheme, gameState]);
 
   // Smooth camera state
   const [smoothPos, setSmoothPos] = useState<Point>({ x: 10, y: 10 });
@@ -754,25 +917,25 @@ export default function App() {
     const ntr = getPoint(l_front, w, h_nose);  // Nose Top Right
 
     // Bottom (Shadow)
-    drawPoly([rbl, rbr, fbr, fbl], 'rgba(0,0,0,0.5)', 'transparent', 'scene-opp-cycle-shadow');
+    drawPoly([rbl, rbr, fbr, fbl], 'rgba(0,0,0,0.5)', 'transparent', `scene-opp-cycle-shadow-${opp.id}`);
 
     // Rear
-    drawPoly([rbl, rbr, rtr, rtl], color, '#fff', 'scene-opp-cycle-rear');
+    drawPoly([rbl, rbr, rtr, rtl], color, '#fff', `scene-opp-cycle-rear-${opp.id}`);
 
     // Left Side
-    drawPoly([rbl, fbl, ntl, ftl, rtl], color, '#fff', 'scene-opp-cycle-left');
+    drawPoly([rbl, fbl, ntl, ftl, rtl], color, '#fff', `scene-opp-cycle-left-${opp.id}`);
 
     // Right Side
-    drawPoly([rbr, fbr, ntr, ftr, rtr], color, '#fff', 'scene-opp-cycle-right');
+    drawPoly([rbr, fbr, ntr, ftr, rtr], color, '#fff', `scene-opp-cycle-right-${opp.id}`);
 
     // Front (Nose)
-    drawPoly([fbl, fbr, ntr, ntl], color, '#fff', 'scene-opp-cycle-front');
+    drawPoly([fbl, fbr, ntr, ntl], color, '#fff', `scene-opp-cycle-front-${opp.id}`);
 
     // Windshield (Slope)
-    drawPoly([ftl, ftr, ntr, ntl], '#111', color, 'scene-opp-cycle-windshield');
+    drawPoly([ftl, ftr, ntr, ntl], '#111', color, `scene-opp-cycle-windshield-${opp.id}`);
 
     // Roof
-    drawPoly([rtl, rtr, ftr, ftl], color, '#fff', 'scene-opp-cycle-roof');
+    drawPoly([rtl, rtr, ftr, ftl], color, '#fff', `scene-opp-cycle-roof-${opp.id}`);
     
     // Engine Glow (Rear)
     const enginePos = getPoint(l_rear, 0, h_top/2);
@@ -780,7 +943,7 @@ export default function App() {
     if (projEngine) {
         elements.push(
             <Rect
-                key="scene-opp-cycle-glow"
+                key={`scene-opp-cycle-glow-${opp.id}`}
                 x={projEngine.x - 5 * projEngine.scale}
                 y={projEngine.y - 5 * projEngine.scale}
                 width={10 * projEngine.scale}
@@ -804,34 +967,35 @@ export default function App() {
     // Horizon Line
     const horizonY = project(smoothPos.x + Math.cos(smoothAngle) * 100, smoothPos.y + Math.sin(smoothAngle) * 100, -CAMERA_HEIGHT)?.y || dimensions.height / 2;
     
-    // Solid Ground for TOS
-    if (currentTheme.id === 'tos') {
-      elements.push(
-        <Rect
-          key="scene-ground-fill"
-          x={0}
-          y={horizonY}
-          width={dimensions.width}
-          height={Math.max(0, dimensions.height - horizonY)}
-          fill={COLORS.GRID}
-          opacity={0.8}
+    const horizonGroup = (
+      <Group key="layer-horizon">
+        {currentTheme.id === 'tos' && (
+          <Rect
+            key="horizon-ground-fill"
+            x={0}
+            y={horizonY}
+            width={dimensions.width}
+            height={Math.max(0, dimensions.height - horizonY)}
+            fill={COLORS.GRID}
+            opacity={0.8}
+          />
+        )}
+        <Line
+          key="horizon-line"
+          points={[0, dimensions.height / 2, dimensions.width, dimensions.height / 2]}
+          stroke={COLORS.GRID_LINES}
+          strokeWidth={2}
+          opacity={0.1}
+          shadowColor={COLORS.GRID_LINES}
         />
-      );
-    }
-
-    elements.push(
-      <Line
-        key="scene-horizon"
-        points={[0, dimensions.height / 2, dimensions.width, dimensions.height / 2]}
-        stroke={COLORS.GRID_LINES}
-        strokeWidth={2}
-        opacity={0.1}
-        shadowColor={COLORS.GRID_LINES}
-      />
+      </Group>
     );
+    elements.push(horizonGroup);
 
     // Sky Objects
-    renderSkyObjects(currentTheme, dimensions, elements, performance.now());
+    const skyElements: React.ReactNode[] = [];
+    renderSkyObjects(currentTheme, dimensions, skyElements, performance.now());
+    elements.push(<Group key="layer-sky">{skyElements}</Group>);
 
     const startX = Math.floor(smoothPos.x - viewDist);
     const endX = Math.ceil(smoothPos.x + viewDist);
@@ -839,13 +1003,14 @@ export default function App() {
     const endY = Math.ceil(smoothPos.y + viewDist);
 
     // Grid Lines (Floor)
+    const gridElements: React.ReactNode[] = [];
     for (let x = startX; x <= endX; x++) {
       const p1 = project(x, startY, 0);
       const p2 = project(x, endY, 0);
       if (p1 && p2) {
-        elements.push(
+        gridElements.push(
           <Line
-            key={`scene-grid-v-${x}`}
+            key={`grid-v-${x}`}
             points={[p1.x, p1.y, p2.x, p2.y]}
             stroke={COLORS.GRID_LINES}
             strokeWidth={1}
@@ -858,9 +1023,9 @@ export default function App() {
       const p1 = project(startX, y, 0);
       const p2 = project(endX, y, 0);
       if (p1 && p2) {
-        elements.push(
+        gridElements.push(
           <Line
-            key={`scene-grid-h-${y}`}
+            key={`grid-h-${y}`}
             points={[p1.x, p1.y, p2.x, p2.y]}
             stroke={COLORS.GRID_LINES}
             strokeWidth={1}
@@ -869,24 +1034,27 @@ export default function App() {
         );
       }
     }
+    elements.push(<Group key="layer-grid">{gridElements}</Group>);
 
     // Obstacles
+    const obstacleElements: React.ReactNode[] = [];
     obstacles.forEach((obs) => {
       const dist = Math.sqrt(Math.pow(obs.x - smoothPos.x, 2) + Math.pow(obs.y - smoothPos.y, 2));
       if (dist > 60 && obs.type !== 'GIANT_TREE') return; // viewDist is 60
-      renderThemeObstacle(obs, currentTheme, project, elements);
+      renderThemeObstacle(obs, currentTheme, project, obstacleElements);
     });
+    elements.push(<Group key="layer-obstacles">{obstacleElements}</Group>);
 
     // Trail
     const isInvulnerable = performance.now() < invulnerableUntil;
     const isArmed = weaponTimer > performance.now();
     
+    const trailElements: React.ReactNode[] = [];
     if (playerTrail.length > 1) {
       for (let i = 0; i < playerTrail.length - 1; i++) {
         const p1 = project(playerTrail[i].x + 0.5, playerTrail[i].y + 0.5, 0);
         const p2 = project(playerTrail[i+1].x + 0.5, playerTrail[i+1].y + 0.5, 0);
         
-        // Taller trail height
         const trailHeight = 0.8; 
         const p1Top = project(playerTrail[i].x + 0.5, playerTrail[i].y + 0.5, -trailHeight);
         const p2Top = project(playerTrail[i+1].x + 0.5, playerTrail[i+1].y + 0.5, -trailHeight);
@@ -895,10 +1063,9 @@ export default function App() {
           const opacity = isInvulnerable ? (Math.floor(performance.now() / 100) % 2 ? 0.2 : 0.8) : 0.6;
           const trailColor = isArmed ? COLORS.WEAPON : COLORS.TRAIL;
           
-          // Wall face
-          elements.push(
+          trailElements.push(
             <Line
-              key={`scene-trail-wall-${i}`}
+              key={`player-trail-wall-${i}`}
               points={[p1.x, p1.y, p2.x, p2.y, p2Top.x, p2Top.y, p1Top.x, p1Top.y]}
               fill={trailColor}
               opacity={opacity}
@@ -906,10 +1073,9 @@ export default function App() {
             />
           );
           
-          // Top edge
-          elements.push(
+          trailElements.push(
             <Line
-              key={`scene-trail-top-${i}`}
+              key={`player-trail-top-${i}`}
               points={[p1Top.x, p1Top.y, p2Top.x, p2Top.y]}
               stroke={trailColor}
               strokeWidth={2}
@@ -921,14 +1087,16 @@ export default function App() {
         }
       }
     }
+    elements.push(<Group key="layer-player-trail">{trailElements}</Group>);
 
     // Particles
+    const particleElements: React.ReactNode[] = [];
     particles.forEach((p) => {
       const proj = project(p.x, p.y, -0.5);
       if (proj) {
-        elements.push(
+        particleElements.push(
           <Rect
-            key={p.id}
+            key={`particle-${p.id}`}
             x={proj.x}
             y={proj.y}
             width={Math.max(1, 4 * proj.scale / 100)}
@@ -940,8 +1108,10 @@ export default function App() {
         );
       }
     });
+    elements.push(<Group key="layer-particles">{particleElements}</Group>);
 
     // Speed Streaks
+    const streakElements: React.ReactNode[] = [];
     if (throttle > 50) {
       const streakCount = Math.floor((throttle - 50) / 2);
       for (let i = 0; i < streakCount; i++) {
@@ -955,9 +1125,9 @@ export default function App() {
         const p2 = project(sx + Math.cos(smoothAngle) * 2, sy + Math.sin(smoothAngle) * 2, sz);
         
         if (p1 && p2) {
-          elements.push(
+          streakElements.push(
             <Line
-              key={`scene-streak-${i}`}
+              key={`streak-${i}`}
               points={[p1.x, p1.y, p2.x, p2.y]}
               stroke={COLORS.PLAYER}
               strokeWidth={1}
@@ -967,8 +1137,10 @@ export default function App() {
         }
       }
     }
+    elements.push(<Group key="layer-streaks">{streakElements}</Group>);
 
     // Opponent Trail
+    const oppTrailElements: React.ReactNode[] = [];
     if (opponent && opponent.trail.length > 1) {
       opponent.trail.forEach((p, i) => {
         if (i === 0) return;
@@ -977,9 +1149,9 @@ export default function App() {
         const p2 = project(p.x, p.y, 0);
         
         if (p1 && p2) {
-          elements.push(
+          oppTrailElements.push(
             <Line
-              key={`scene-opp-trail-${i}`}
+              key={`opp-trail-base-${i}`}
               points={[p1.x, p1.y, p2.x, p2.y]}
               stroke={opponent.color}
               strokeWidth={2 * p1.scale}
@@ -994,9 +1166,9 @@ export default function App() {
           const p2Top = project(p.x, p.y, h);
           
           if (p1Top && p2Top) {
-             elements.push(
+             oppTrailElements.push(
               <Line
-                key={`scene-opp-trail-wall-${i}`}
+                key={`opp-trail-wall-${i}`}
                 points={[p1.x, p1.y, p2.x, p2.y, p2Top.x, p2Top.y, p1Top.x, p1Top.y]}
                 fill={opponent.color}
                 opacity={0.3}
@@ -1007,10 +1179,11 @@ export default function App() {
         }
       });
     }
+    elements.push(<Group key="layer-opp-trail">{oppTrailElements}</Group>);
 
     // Opponent
     if (opponent && opponent.alive) {
-      elements.push(...renderOpponentCycle(opponent));
+      elements.push(<Group key="layer-opponent">{renderOpponentCycle(opponent)}</Group>);
     }
 
     return elements;
@@ -1035,6 +1208,7 @@ export default function App() {
       newColors[key] = colorValues[index];
     });
     
+    setFlavorText(null);
     setCurrentTheme({
       ...currentTheme,
       colors: newColors
@@ -1261,6 +1435,7 @@ export default function App() {
                 {/* Trail */}
                 {playerTrail.length > 1 && (
                   <Line
+                    key="mini-player-trail"
                     points={playerTrail.flatMap(p => [p.x + 0.5, p.y + 0.5])}
                     stroke={COLORS.TRAIL}
                     strokeWidth={0.8}
@@ -1270,6 +1445,7 @@ export default function App() {
                 {/* Opponent Trail */}
                 {opponent && opponent.trail.length > 1 && (
                   <Line
+                    key="mini-opponent-trail"
                     points={opponent.trail.flatMap(p => [p.x + 0.5, p.y + 0.5])}
                     stroke={opponent.color}
                     strokeWidth={0.8}
@@ -1279,6 +1455,7 @@ export default function App() {
                 {/* Opponent */}
                 {opponent && opponent.alive && (
                   <Rect
+                    key="mini-opponent"
                     x={opponent.x}
                     y={opponent.y}
                     width={1.2}
@@ -1291,6 +1468,7 @@ export default function App() {
                 )}
                 {/* Player */}
                 <Rect
+                  key="mini-player"
                   x={playerPos.x}
                   y={playerPos.y}
                   width={1.2}
@@ -1309,6 +1487,7 @@ export default function App() {
       <AnimatePresence>
         {showThemeMenu && (
           <motion.div
+            key="theme-menu-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1330,6 +1509,8 @@ export default function App() {
                   <button
                     key={theme.id}
                     onClick={() => {
+                      setFlavorText(null);
+                      setAnnouncement(null);
                       setCurrentTheme(theme);
                       setShowThemeMenu(false);
                     }}
@@ -1356,36 +1537,56 @@ export default function App() {
 
         {/* Weapon Timer */}
         {weaponTimer > performance.now() && (
-          <div className="absolute top-24 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-2xl font-bold animate-pulse z-50" style={{ color: COLORS.WEAPON }}>
+          <div 
+            key="ui-weapon-timer"
+            className="absolute top-24 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-2xl font-bold animate-pulse z-50" 
+            style={{ color: COLORS.WEAPON }}
+          >
             <Zap className="w-8 h-8" />
             {Math.ceil((weaponTimer - performance.now()) / 1000)}s
           </div>
         )}
 
-        {/* Flavor Text */}
-        <AnimatePresence>
+        {/* Flavor Text (Dialog Window) */}
+        <AnimatePresence mode="wait" key="presence-flavor-text">
           {flavorText && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute bottom-32 left-1/2 transform -translate-x-1/2 max-w-2xl text-center z-40 pointer-events-none"
+              key={`flavor-text-${currentTheme.id}-${flavorText}`}
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              className="absolute bottom-8 left-8 max-w-sm z-40 pointer-events-none"
             >
-              <p className="text-xl md:text-2xl font-mono text-white/80 bg-black/60 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/10 shadow-2xl">
-                {currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049' ? (
-                  <span className="italic">"{flavorText}"</span>
-                ) : (
-                  <span className="font-bold uppercase tracking-widest text-cyan-400">{flavorText}</span>
-                )}
-              </p>
+              <div className="relative group">
+                {/* Decorative corner accents */}
+                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2" style={{ borderColor: COLORS.PLAYER }} />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2" style={{ borderColor: COLORS.PLAYER }} />
+                
+                <div className="bg-black/80 backdrop-blur-md px-6 py-4 rounded-lg border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: COLORS.PLAYER }} />
+                    <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-50" style={{ color: COLORS.PLAYER }}>
+                      Transmission
+                    </span>
+                  </div>
+                  <p className="text-sm md:text-base font-mono leading-relaxed" style={{ color: COLORS.TEXT }}>
+                    {currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049' ? (
+                      <span className="italic">"{flavorText}"</span>
+                    ) : (
+                      <span className="font-medium">{flavorText}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Announcement */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait" key="presence-announcement">
           {announcement && (
             <motion.div
+              key={`announcement-${currentTheme.id}-${announcement}`}
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
@@ -1398,6 +1599,7 @@ export default function App() {
 
         {gameState === 'PAUSED' && (
           <motion.div
+            key="ui-paused-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1422,6 +1624,7 @@ export default function App() {
 
         {gameState === 'START' && (
           <motion.div
+            key="ui-start-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1468,6 +1671,7 @@ export default function App() {
 
         {gameState === 'GAMEOVER' && (
           <motion.div
+            key="ui-gameover-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -631,8 +631,9 @@ export const renderSkyObjects = (
     const radius = Math.min(dimensions.width, dimensions.height) * 0.15;
     
     elements.push(
-      <Group key="sky-death-star">
+      <Group key={`sky-death-star-${theme.id}`}>
         <Circle
+          key="ds-body"
           x={cx}
           y={cy}
           radius={radius}
@@ -642,6 +643,7 @@ export const renderSkyObjects = (
         />
         {/* Superlaser dish */}
         <Circle
+          key="ds-dish"
           x={cx - radius * 0.4}
           y={cy - radius * 0.4}
           radius={radius * 0.25}
@@ -651,6 +653,7 @@ export const renderSkyObjects = (
         />
         {/* Equatorial trench */}
         <Line
+          key="ds-trench"
           points={[cx - radius, cy, cx + radius, cy]}
           stroke="#111"
           strokeWidth={2}
@@ -667,7 +670,7 @@ export const renderSkyObjects = (
       const y = dimensions.height * (0.1 + i * 0.15) + Math.sin(t * 0.005) * 20;
       
       elements.push(
-        <Group key={`sky-tie-${i}`} x={x} y={y}>
+        <Group key={`sky-tie-${theme.id}-${i}`} x={x} y={y}>
           {/* Body */}
           <Circle key="body" radius={6} fill="#111" stroke="#444" strokeWidth={1} />
           {/* Wings */}
@@ -690,7 +693,7 @@ export const renderSkyObjects = (
       
       elements.push(
         <Rect
-          key={`sky-skyline-${i}`}
+          key={`sky-skyline-${theme.id}-${i}`}
           x={x}
           y={y}
           width={width + 1}
@@ -707,7 +710,7 @@ export const renderSkyObjects = (
         if (Math.random() > 0.5) {
           elements.push(
             <Rect
-              key={`sky-win-${i}-${j}`}
+              key={`sky-win-${theme.id}-${i}-${j}`}
               x={x + Math.random() * width * 0.8}
               y={y + Math.random() * h * 0.8}
               width={width * 0.1}
@@ -738,15 +741,17 @@ export const renderSkyObjects = (
       const color = i === 0 ? '#FF4500' : ['#00FFFF', '#FF00FF', '#FFFF00'][i % 3]; // Toruk (Red) + others
       
       elements.push(
-        <Group key={`creature-${i}`} x={x} y={y}>
+        <Group key={`sky-creature-${theme.id}-${i}`} x={x} y={y}>
           {/* Body */}
           <Line
+            key="body"
             points={[-size, -flap, 0, 0, size, -flap]}
             stroke={color}
             strokeWidth={3}
             tension={0.5}
           />
           <Circle
+            key="head"
             x={0}
             y={0}
             radius={3}
@@ -783,7 +788,7 @@ export const renderSkyObjects = (
         
         elements.push(
           <Text
-            key={`rain-${i}-${j}`}
+            key={`sky-rain-${theme.id}-${i}-${j}`}
             x={x}
             y={y}
             text={char}
@@ -803,9 +808,10 @@ export const renderSkyObjects = (
     const radius = Math.min(dimensions.width, dimensions.height) * 0.15;
 
     elements.push(
-      <Group key="sky-hal-9000">
+      <Group key={`sky-hal-9000-${theme.id}`}>
         {/* Outer Rim (Silver/Metal) */}
         <Circle
+          key="rim"
           x={cx}
           y={cy}
           radius={radius}
@@ -818,6 +824,7 @@ export const renderSkyObjects = (
         
         {/* Inner Black Void */}
         <Circle
+          key="void"
           x={cx}
           y={cy}
           radius={radius * 0.85}
@@ -826,6 +833,7 @@ export const renderSkyObjects = (
 
         {/* Red Glow Center */}
         <Circle
+          key="glow"
           x={cx}
           y={cy}
           radius={radius * 0.5}
@@ -837,6 +845,7 @@ export const renderSkyObjects = (
         
         {/* Central bright dot */}
         <Circle
+            key="dot"
             x={cx}
             y={cy}
             radius={radius * 0.1}
@@ -848,6 +857,7 @@ export const renderSkyObjects = (
 
         {/* Reflection */}
         <Circle
+            key="reflection"
             x={cx - radius * 0.3}
             y={cy - radius * 0.3}
             radius={radius * 0.15}
@@ -858,6 +868,77 @@ export const renderSkyObjects = (
         />
       </Group>
     );
+  } else if (theme.id === 'dune') {
+    // Sand Worms undulating through the sand
+    const wormCount = 2;
+    for (let i = 0; i < wormCount; i++) {
+      const speed = 0.03 + i * 0.01;
+      const t = time * speed + i * 5000;
+      const x = (t % (dimensions.width + 400)) - 200;
+      const horizonY = dimensions.height / 2;
+      const yBase = horizonY + 20 + i * 40;
+      
+      const segmentCount = 12;
+      const segmentWidth = 15;
+      const points: number[] = [];
+      
+      for (let j = 0; j < segmentCount; j++) {
+        const segX = x - j * segmentWidth;
+        // Undulation: sine wave that affects Y position
+        const undulation = Math.sin(t * 0.005 - j * 0.5) * 15;
+        // Only show if above "sand" or just slightly below for effect
+        const segY = yBase + undulation;
+        
+        points.push(segX, segY);
+      }
+
+      elements.push(
+        <Group key={`sky-worm-${theme.id}-${i}`}>
+          <Line
+            key="worm-body"
+            points={points}
+            stroke="#8B4513" // Brownish worm color
+            strokeWidth={10 - i * 2}
+            tension={0.4}
+            lineCap="round"
+            lineJoin="round"
+            shadowColor="#000"
+            shadowBlur={5}
+          />
+          {/* Head detail */}
+          <Circle
+            key="worm-head"
+            x={points[0]}
+            y={points[1]}
+            radius={7 - i}
+            fill="#5D4037"
+            stroke="#3E2723"
+            strokeWidth={1}
+          />
+        </Group>
+      );
+    }
+
+    // Two Suns (Tatooine style but for Arrakis)
+    const suns = [
+      { x: 0.2, y: 0.2, r: 0.08, color: '#FFD700' },
+      { x: 0.25, y: 0.25, r: 0.04, color: '#FFA500' }
+    ];
+
+    suns.forEach((sun, i) => {
+      elements.push(
+        <Circle
+          key={`sky-sun-${theme.id}-${i}`}
+          x={dimensions.width * sun.x}
+          y={dimensions.height * sun.y}
+          radius={Math.min(dimensions.width, dimensions.height) * sun.r}
+          fill={sun.color}
+          shadowColor={sun.color}
+          shadowBlur={20}
+          opacity={0.8}
+        />
+      );
+    });
   }
 };
 const renderBox = (
