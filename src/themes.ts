@@ -180,19 +180,19 @@ export const THEMES: Theme[] = [
     id: 'star-wars',
     title: 'Star Wars',
     colors: {
-      PLAYER: '#FF6600',    // Target Orange
-      OPPONENT: '#0044FF',  // Republic Blue
-      TRAIL: '#FF6600',
-      WALL: '#FFFF00',      // Alert Yellow
-      BOOST: '#00FF00',     // Tactical Green
+      PLAYER: '#FFFF00',    // Yellow
+      OPPONENT: '#FF0000',  // Red
+      TRAIL: '#FFFF00',
+      WALL: '#FFFF00',      // Yellow
+      BOOST: '#00FF00',     // Green
       SLOW: '#000000',
-      TELEPORT: '#0044FF',
+      TELEPORT: '#00FFFF',  // Cyan
       MOVING_WALL: '#FFFF00',
       PILLAR: '#00FF00',
       WEAPON: '#FF0000',
       GRID: '#000000',
-      GRID_LINES: '#FF6600',
-      TEXT: '#00FF00',
+      GRID_LINES: '#FFFF00',
+      TEXT: '#00FF00',      // Green
     }
   },
   {

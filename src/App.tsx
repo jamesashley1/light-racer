@@ -18,6 +18,184 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const StarWarsHUD = ({ lives, score, colors, isMobile }: { lives: number, score: number, colors: any, isMobile: boolean }) => {
+  return (
+    <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
+      {/* Top Shield Indicator */}
+      <div className="absolute top-2 md:top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <div className="relative w-32 h-8 border border-green-500/40 flex items-center justify-center">
+          {/* Wireframe lines */}
+          <div className="absolute inset-0 grid grid-cols-4 border-x border-green-500/20" />
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-green-500/20" />
+          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-green-500/20" />
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[12px] font-mono text-green-500 font-bold leading-none">{lives}</span>
+            <span className="text-[8px] font-mono text-green-500 uppercase tracking-widest font-bold">Shield</span>
+          </div>
+        </div>
+
+        {/* Top Message Box (Yellow) */}
+        <div className="w-64 md:w-[600px] h-24 border-2 border-yellow-400/40 rounded-xl bg-black/20" />
+      </div>
+
+      {/* Main View Border (Yellow) */}
+      <div className="absolute inset-2 md:inset-4 border-4 border-yellow-400 rounded-[40px] opacity-40 pointer-events-none" />
+
+      {/* Side Buttons (Left) */}
+      <div className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 flex flex-col gap-4">
+        <div className="w-10 h-10 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+          <div className="w-8 h-[2px] bg-black rotate-45" />
+        </div>
+        <div className="w-10 h-10 rounded-sm bg-red-600 border-2 border-black flex flex-col items-center justify-center gap-1 shadow-[0_0_15px_rgba(220,38,38,0.4)]">
+          <div className="w-6 h-1 bg-white" />
+          <div className="w-6 h-1 bg-white" />
+        </div>
+        <div className="flex gap-1">
+          <div className="w-4 h-4 bg-yellow-400 border border-black" />
+          <div className="w-4 h-4 bg-blue-700 border border-black" />
+        </div>
+        <div className="w-4 h-4 bg-green-500 border border-black" />
+      </div>
+
+      {/* Side Buttons (Right) */}
+      <div className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 items-end">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="w-12 h-12 rounded-full bg-white border-2 border-zinc-400 flex items-center justify-center shadow-inner">
+            <div className="w-8 h-8 rounded-full border border-zinc-200 flex flex-col items-center justify-center gap-1">
+              <div className="w-4 h-1 bg-red-600" />
+              <div className="w-2 h-2 bg-red-600 rounded-sm" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Score Display (Red Digital) */}
+      <div className="absolute bottom-[28%] left-1/2 -translate-x-1/2 flex flex-col items-center">
+        <div className="bg-black border-2 border-yellow-400 px-6 py-1 rounded-xl shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+          <span className="text-3xl font-mono text-red-600 font-black tracking-[0.2em] drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]">
+            {score.toString().padStart(6, '0')}
+          </span>
+        </div>
+      </div>
+
+      {/* Tactical Map Label Box */}
+      {!isMobile && (
+        <div className="absolute bottom-[24%] left-1/2 -translate-x-1/2 w-48 h-6 border border-yellow-400/60 rounded-full bg-black/40 flex items-center justify-center">
+          <span className="text-[8px] font-mono text-yellow-400 uppercase tracking-[0.3em] font-bold">Targeting Radar</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Reticle = ({ theme, isMobile, color }: { theme: Theme, isMobile: boolean, color: string }) => {
+  const size = isMobile ? "w-24 h-24" : "w-32 h-32";
+  const borderColor = color + '4d';
+  const accentColor = color + '80';
+
+  const renderReticle = () => {
+    switch (theme.id) {
+      case 'star-wars':
+        return (
+          <div className={cn("relative flex items-center justify-center", size)}>
+            {/* Outer Circle */}
+            <div className="absolute inset-0 border-2 rounded-full" style={{ borderColor }} />
+            {/* Angled Crosshairs */}
+            <div className="absolute w-full h-[1px] rotate-45" style={{ backgroundColor: accentColor }} />
+            <div className="absolute w-full h-[1px] -rotate-45" style={{ backgroundColor: accentColor }} />
+            {/* Central Dot */}
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+            {/* Targeting Brackets */}
+            <div className="absolute -inset-2 border-x-2 border-yellow-400/40 rounded-lg" />
+          </div>
+        );
+      case 'blade-runner':
+      case 'br2049':
+        return (
+          <div className={cn("relative flex items-center justify-center", size)}>
+            {/* Corner Brackets */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2" style={{ borderColor: color }} />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2" style={{ borderColor: color }} />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2" style={{ borderColor: color }} />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2" style={{ borderColor: color }} />
+            {/* Horizontal Scanline */}
+            <div className="absolute w-full h-[1px] bg-white/20 animate-pulse" />
+            {/* Central Cross */}
+            <div className="absolute w-4 h-[1px]" style={{ backgroundColor: color }} />
+            <div className="absolute h-4 w-[1px]" style={{ backgroundColor: color }} />
+          </div>
+        );
+      case 'matrix':
+      case 'ghost-shell':
+        return (
+          <div className={cn("relative flex items-center justify-center font-mono text-[8px]", size)}>
+            <div className="absolute inset-2 border border-dashed rounded-sm" style={{ borderColor }} />
+            <div className="absolute top-0 left-0 text-green-500/50">0x{Math.floor(Math.random()*255).toString(16)}</div>
+            <div className="absolute bottom-0 right-0 text-green-500/50">SYS_LOCK</div>
+            <div className="w-1 h-1 bg-green-500 shadow-[0_0_8px_rgba(0,255,65,0.8)]" />
+          </div>
+        );
+      case 'alien':
+      case 'prometheus':
+        return (
+          <div className={cn("relative flex items-center justify-center", size)}>
+            <div className="absolute inset-0 border border-white/10 rounded-full" />
+            <div className="absolute inset-4 border-2 rounded-full border-t-transparent border-b-transparent animate-spin-slow" style={{ borderColor: color }} />
+            <div className="w-1 h-1 rounded-full" style={{ backgroundColor: color }} />
+            <div className="absolute top-0 h-2 w-[1px]" style={{ backgroundColor: color }} />
+            <div className="absolute bottom-0 h-2 w-[1px]" style={{ backgroundColor: color }} />
+            <div className="absolute left-0 w-2 h-[1px]" style={{ backgroundColor: color }} />
+            <div className="absolute right-0 w-2 h-[1px]" style={{ backgroundColor: color }} />
+          </div>
+        );
+      case 'tng':
+        return (
+          <div className={cn("relative flex items-center justify-center", size)}>
+            <div className="absolute inset-0 border-l-4 border-r-4 rounded-[40px]" style={{ borderColor: theme.colors.PLAYER }} />
+            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10" />
+            <div className="w-2 h-2 rotate-45 border" style={{ borderColor: color }} />
+          </div>
+        );
+      case 'robocop':
+      case 'wargames':
+        return (
+          <div className={cn("relative flex items-center justify-center", size)}>
+            <div className="absolute inset-0 border-2" style={{ borderColor }} />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-1/2 animate-scan" />
+            <div className="absolute top-2 left-2 text-[6px] font-mono" style={{ color }}>ID_SCAN_ACTIVE</div>
+            <div className="w-2 h-2 border-t border-l" style={{ borderColor: color, position: 'absolute', top: '40%', left: '40%' }} />
+            <div className="w-2 h-2 border-b border-r" style={{ borderColor: color, position: 'absolute', bottom: '40%', right: '40%' }} />
+          </div>
+        );
+      case 'tron':
+        return (
+          <div className={cn("relative flex items-center justify-center rotate-45", size)}>
+            <div className="absolute inset-0 border-2" style={{ borderColor }} />
+            <div className="absolute inset-4 border" style={{ borderColor: accentColor }} />
+            <div className="w-1 h-1 bg-white shadow-[0_0_10px_white]" />
+          </div>
+        );
+      default:
+        return (
+          <div className={cn("border rounded-full flex items-center justify-center", size)} style={{ borderColor }}>
+            <div className="w-1 h-1 rounded-full" style={{ backgroundColor: color }} />
+            <div className="absolute w-8 h-[1px] -left-4" style={{ backgroundColor: accentColor }} />
+            <div className="absolute w-8 h-[1px] -right-4" style={{ backgroundColor: accentColor }} />
+            <div className="absolute h-8 w-[1px] -top-4" style={{ backgroundColor: accentColor }} />
+            <div className="absolute h-8 w-[1px] -bottom-4" style={{ backgroundColor: accentColor }} />
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60">
+      {renderReticle()}
+    </div>
+  );
+};
+
 export default function App() {
   const [gameState, setGameState] = useState<GameState>('START');
   const [score, setScore] = useState(0);
@@ -46,6 +224,10 @@ export default function App() {
   const [respawnTimer, setRespawnTimer] = useState(0);
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const [flavorText, setFlavorText] = useState<string | null>(null);
+  const [screenFlash, setScreenFlash] = useState(0); // 0 to 1
+  const [cameraShake, setCameraShake] = useState(0);
+
+  const TRAIL_VISIBILITY_DELAY = 3;
 
   const COLORS = currentTheme.colors;
 
@@ -454,7 +636,9 @@ export default function App() {
     if (lives > 1) {
       setLives(l => l - 1);
       setInvulnerableUntil(now + INVULNERABILITY_TIME);
-      createParticles(playerPos.x, playerPos.y, color, 20);
+      createParticles(playerPos.x, playerPos.y, color, 40);
+      setScreenFlash(1);
+      setCameraShake(10);
       // Clear trail on hit to give some breathing room
       setPlayerTrail([playerPos]);
     } else {
@@ -724,6 +908,9 @@ export default function App() {
           .filter(p => p.life > 0)
       );
 
+      setScreenFlash(f => Math.max(0, f - 0.05));
+      setCameraShake(s => Math.max(0, s - 0.5));
+
       // Grid pulse
       setGridPulse(Math.sin(time / 500) * 0.5 + 0.5);
 
@@ -847,8 +1034,8 @@ export default function App() {
 
     const scale = Math.min(10000, FOCAL_LENGTH / Math.max(0.01, rz));
     return {
-      x: dimensions.width / 2 + rx * scale,
-      y: dimensions.height / 2 + dy * scale,
+      x: dimensions.width / 2 + rx * scale + (Math.random() - 0.5) * cameraShake,
+      y: dimensions.height / 2 + dy * scale + (Math.random() - 0.5) * cameraShake,
       scale
     };
   };
@@ -1050,8 +1237,8 @@ export default function App() {
     const isArmed = weaponTimer > performance.now();
     
     const trailElements: React.ReactNode[] = [];
-    if (playerTrail.length > 1) {
-      for (let i = 0; i < playerTrail.length - 1; i++) {
+    if (playerTrail.length > TRAIL_VISIBILITY_DELAY + 1) {
+      for (let i = 0; i < playerTrail.length - 1 - TRAIL_VISIBILITY_DELAY; i++) {
         const p1 = project(playerTrail[i].x + 0.5, playerTrail[i].y + 0.5, 0);
         const p2 = project(playerTrail[i+1].x + 0.5, playerTrail[i+1].y + 0.5, 0);
         
@@ -1228,6 +1415,17 @@ export default function App() {
         <Stage width={dimensions.width} height={dimensions.height}>
           <Layer>
             {renderScene()}
+            {/* Screen Flash Overlay */}
+            {screenFlash > 0 && (
+              <Rect
+                x={0}
+                y={0}
+                width={dimensions.width}
+                height={dimensions.height}
+                fill="#ff0000"
+                opacity={screenFlash * 0.4}
+              />
+            )}
           </Layer>
         </Stage>
       </div>
@@ -1244,18 +1442,7 @@ export default function App() {
       )}
 
       {/* HUD Reticle */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
-        <div 
-          className={cn("border rounded-full flex items-center justify-center", isMobile ? "w-24 h-24" : "w-32 h-32")}
-          style={{ borderColor: COLORS.PLAYER + '4d' }}
-        >
-          <div className="w-1 h-1 rounded-full" style={{ backgroundColor: COLORS.PLAYER }} />
-          <div className="absolute w-8 h-[1px] -left-4" style={{ backgroundColor: COLORS.PLAYER + '80' }} />
-          <div className="absolute w-8 h-[1px] -right-4" style={{ backgroundColor: COLORS.PLAYER + '80' }} />
-          <div className="absolute h-8 w-[1px] -top-4" style={{ backgroundColor: COLORS.PLAYER + '80' }} />
-          <div className="absolute h-8 w-[1px] -bottom-4" style={{ backgroundColor: COLORS.PLAYER + '80' }} />
-        </div>
-      </div>
+      <Reticle theme={currentTheme} isMobile={isMobile} color={COLORS.PLAYER} />
 
       {/* Mobile Controls */}
       {isMobile && gameState === 'PLAYING' && (
@@ -1350,31 +1537,35 @@ export default function App() {
             {gameState === 'PAUSED' ? <Play className="w-5 h-5 text-white/70" /> : <Pause className="w-5 h-5 text-white/70" />}
           </button>
         </div>
-        <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl">
-          <Shield className={cn("w-5 h-5", performance.now() < invulnerableUntil ? "text-white animate-pulse" : "")} style={{ color: performance.now() < invulnerableUntil ? '#fff' : COLORS.PLAYER }} />
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-white/50 font-semibold">Integrity</p>
-            <div className="flex gap-1 mt-1">
-              {[...Array(INITIAL_LIVES)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className={cn(
-                    "w-3 h-1.5 rounded-full transition-all duration-500",
-                    i < lives ? "" : "bg-white/10"
-                  )} 
-                  style={{ backgroundColor: i < lives ? COLORS.PLAYER : undefined, boxShadow: i < lives ? `0 0 8px ${COLORS.PLAYER}cc` : undefined }}
-                />
-              ))}
+        {currentTheme.id !== 'star-wars' && (
+          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl">
+            <Shield className={cn("w-5 h-5", performance.now() < invulnerableUntil ? "text-white animate-pulse" : "")} style={{ color: performance.now() < invulnerableUntil ? '#fff' : COLORS.PLAYER }} />
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-white/50 font-semibold">Integrity</p>
+              <div className="flex gap-1 mt-1">
+                {[...Array(INITIAL_LIVES)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={cn(
+                      "w-3 h-1.5 rounded-full transition-all duration-500",
+                      i < lives ? "" : "bg-white/10"
+                    )} 
+                    style={{ backgroundColor: i < lives ? COLORS.PLAYER : undefined, boxShadow: i < lives ? `0 0 8px ${COLORS.PLAYER}cc` : undefined }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl">
-          <Zap className="w-5 h-5" style={{ color: COLORS.PLAYER }} />
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-white/50 font-semibold">Score</p>
-            <p className="text-2xl font-bold font-mono leading-none">{score}</p>
+        )}
+        {currentTheme.id !== 'star-wars' && (
+          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl">
+            <Zap className="w-5 h-5" style={{ color: COLORS.PLAYER }} />
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-white/50 font-semibold">Score</p>
+              <p className="text-2xl font-bold font-mono leading-none">{score}</p>
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl">
           <Zap className="w-5 h-5" style={{ color: COLORS.BOOST }} />
           <div>
@@ -1402,10 +1593,14 @@ export default function App() {
       {/* Minimap */}
       {gameState === 'PLAYING' && (
         <div className={cn(
-          "absolute bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden z-40 transition-all",
-          isMobile ? "bottom-4 right-4 w-32 h-32" : "bottom-6 right-6 w-48 h-48"
+          "absolute bg-black/40 backdrop-blur-md border rounded-2xl overflow-hidden z-40 transition-all",
+          currentTheme.id === 'star-wars'
+            ? (isMobile ? "bottom-4 left-1/2 -translate-x-1/2 w-32 h-32 border-yellow-400/40" : "bottom-6 left-1/2 -translate-x-1/2 w-48 h-48 border-yellow-400/40")
+            : (isMobile ? "bottom-4 right-4 w-32 h-32 border-white/10" : "bottom-6 right-6 w-48 h-48 border-white/10")
         )}>
-          <div className="absolute top-2 left-2 text-[8px] uppercase tracking-widest text-white/40 font-bold z-10">Tactical Map</div>
+          <div className="absolute top-2 left-2 text-[8px] uppercase tracking-widest text-white/40 font-bold z-10">
+            {currentTheme.id === 'star-wars' ? "Targeting Radar" : "Tactical Map"}
+          </div>
           <Stage width={isMobile ? 128 : 192} height={isMobile ? 128 : 192}>
             <Layer>
               {/* Zoomed in map */}
@@ -1478,10 +1673,27 @@ export default function App() {
                   offsetX={0.6}
                   offsetY={0.6}
                 />
+
+                {/* Star Wars Targeting Crosshair */}
+                {currentTheme.id === 'star-wars' && (
+                  <Group x={playerPos.x} y={playerPos.y}>
+                    <Line points={[-2, 0, 2, 0]} stroke="#FF0000" strokeWidth={0.2} />
+                    <Line points={[0, -2, 0, 2]} stroke="#FF0000" strokeWidth={0.2} />
+                    <Line points={[-1.5, -1.5, -0.5, -0.5]} stroke="#FF0000" strokeWidth={0.2} />
+                    <Line points={[1.5, 1.5, 0.5, 0.5]} stroke="#FF0000" strokeWidth={0.2} />
+                    <Line points={[-1.5, 1.5, -0.5, 0.5]} stroke="#FF0000" strokeWidth={0.2} />
+                    <Line points={[1.5, -1.5, 0.5, -0.5]} stroke="#FF0000" strokeWidth={0.2} />
+                  </Group>
+                )}
               </Group>
             </Layer>
           </Stage>
         </div>
+      )}
+
+      {/* Star Wars HUD */}
+      {gameState === 'PLAYING' && currentTheme.id === 'star-wars' && (
+        <StarWarsHUD lives={lives} score={score} colors={COLORS} isMobile={isMobile} />
       )}
 
       <AnimatePresence>
@@ -1558,25 +1770,41 @@ export default function App() {
               className="absolute bottom-8 left-8 max-w-sm z-40 pointer-events-none"
             >
               <div className="relative group">
-                {/* Decorative corner accents */}
-                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2" style={{ borderColor: COLORS.PLAYER }} />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2" style={{ borderColor: COLORS.PLAYER }} />
-                
-                <div className="bg-black/80 backdrop-blur-md px-6 py-4 rounded-lg border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: COLORS.PLAYER }} />
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-50" style={{ color: COLORS.PLAYER }}>
-                      Transmission
-                    </span>
+                {currentTheme.id === 'star-wars' ? (
+                  <div className="bg-black/80 border-2 border-yellow-400/60 p-4 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full animate-pulse bg-green-500" />
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-black text-yellow-400 opacity-70">
+                        Transmission
+                      </span>
+                    </div>
+                    <p className="text-sm md:text-base font-mono font-bold tracking-tight text-green-500 uppercase leading-relaxed">
+                      {flavorText}
+                    </p>
                   </div>
-                  <p className="text-sm md:text-base font-mono leading-relaxed" style={{ color: COLORS.TEXT }}>
-                    {currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049' ? (
-                      <span className="italic">"{flavorText}"</span>
-                    ) : (
-                      <span className="font-medium">{flavorText}</span>
-                    )}
-                  </p>
-                </div>
+                ) : (
+                  <>
+                    {/* Decorative corner accents */}
+                    <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2" style={{ borderColor: COLORS.PLAYER }} />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2" style={{ borderColor: COLORS.PLAYER }} />
+                    
+                    <div className="bg-black/80 backdrop-blur-md px-6 py-4 rounded-lg border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: COLORS.PLAYER }} />
+                        <span className="text-[10px] uppercase tracking-[0.2em] font-black opacity-50" style={{ color: COLORS.PLAYER }}>
+                          Transmission
+                        </span>
+                      </div>
+                      <p className="text-sm md:text-base font-mono leading-relaxed" style={{ color: COLORS.TEXT }}>
+                        {currentTheme.id === 'blade-runner' || currentTheme.id === 'br2049' ? (
+                          <span className="italic">"{flavorText}"</span>
+                        ) : (
+                          <span className="font-medium">{flavorText}</span>
+                        )}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           )}
